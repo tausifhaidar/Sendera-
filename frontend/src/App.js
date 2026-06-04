@@ -138,7 +138,28 @@ function App() {
         }}
       >
         <h1>Sendera</h1>
+         <button
+  onClick={() => {
+    localStorage.removeItem(
+      "sendera_wallet"
+    );
 
+    setWallet(null);
+    setSeedPhrase("");
+    setScreen("welcome");
+  }}
+  style={{
+    padding: 10,
+    borderRadius: 10,
+    border: "none",
+    background: "#ef4444",
+    color: "white",
+    marginBottom: 20,
+  }}
+>
+  Logout
+</button>
+    
         <div
           style={{
             background: "#0f172a",
