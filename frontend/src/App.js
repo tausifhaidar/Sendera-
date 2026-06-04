@@ -171,6 +171,27 @@ function App() {
           </p>
         </div>
 
+         <button
+  onClick={() => {
+    navigator.clipboard.writeText(
+      wallet?.address || ""
+    );
+    alert("Address Copied");
+  }}
+  style={{
+    marginTop: 12,
+    width: "100%",
+    padding: 12,
+    borderRadius: 12,
+    border: "none",
+    background: "#2563eb",
+    color: "white",
+    fontWeight: "bold",
+  }}
+>
+  Copy Address
+</button>
+    
         <div
           style={{
             marginTop: 20,
