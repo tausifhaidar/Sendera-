@@ -236,20 +236,50 @@ function App() {
         Create Wallet
       </button>
 
-      <button
-        style={{
-          width: 250,
-          padding: 16,
-          borderRadius: 14,
-          border: "1px solid #334155",
-          background: "#0f172a",
-          color: "white",
-          fontSize: 18,
-        }}
-      >
-        Import Wallet
-      </button>
-    </div>
+      <div
+  style={{
+    width: 250,
+  }}
+>
+  <textarea
+    placeholder="Paste Seed Phrase"
+    value={importPhrase}
+    onChange={(e) =>
+      setImportPhrase(
+        e.target.value
+      )
+    }
+    style={{
+      width: "100%",
+      height: 100,
+      padding: 12,
+      borderRadius: 12,
+      marginBottom: 10,
+      background: "#0f172a",
+      color: "white",
+      border:
+        "1px solid #334155",
+      boxSizing:
+        "border-box",
+    }}
+  />
+
+  <button
+    onClick={importWallet}
+    style={{
+      width: "100%",
+      padding: 16,
+      borderRadius: 14,
+      border: "1px solid #334155",
+      background: "#0f172a",
+      color: "white",
+      fontSize: 18,
+    }}
+  >
+    Import Wallet
+  </button>
+</div>
+</div>
   );
 }
 
