@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
 function App() {
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
   const [seedPhrase, setSeedPhrase] = useState("");
-
+  const [importPhrase, setImportPhrase] = useState("");
+  
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
 
@@ -26,7 +27,30 @@ function App() {
     setSeedPhrase(phrase);
     setScreen("backup");
   }
+useEffect(() => {
+  const savedWallet =
+    localStorage.getItem(
+      "sendera_wallet"
+    );
 
+  if (!savedWallet) return;
+
+  try {
+    const data =
+      JSON.parse(savedWallet);
+
+    const restoredWallet =
+      new ethers.Wallet(
+        data.privateKey
+      );
+
+    setWallet(restoredWallet);
+    setScreen("dashboard");
+  } catch (err) {
+    console.log(err);
+  }
+}, []);
+  
   if (screen === "backup") {
     return (
       <div
