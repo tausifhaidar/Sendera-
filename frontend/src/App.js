@@ -27,7 +27,32 @@ function App() {
     setSeedPhrase(phrase);
     setScreen("backup");
   }
-useEffect(() => {
+  function importWallet() {
+  try {
+    const importedWallet =
+      ethers.Wallet.fromPhrase(
+        importPhrase.trim()
+      );
+
+    localStorage.setItem(
+      "sendera_wallet",
+      JSON.stringify({
+        address:
+          importedWallet.address,
+        privateKey:
+          importedWallet.privateKey,
+        phrase:
+          importPhrase.trim(),
+      })
+    );
+
+    setWallet(importedWallet);
+    setScreen("dashboard");
+  } catch (err) {
+    alert("Invalid Seed Phrase");
+  }
+  }
+  useEffect(() => {
   const savedWallet =
     localStorage.getItem(
       "sendera_wallet"
