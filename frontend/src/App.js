@@ -2,12 +2,19 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
 function App() {
+ // ====================
+// STATE
+// ====================
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
   const [seedPhrase, setSeedPhrase] = useState("");
   const [importPhrase, setImportPhrase] = useState("");
   const [activeTab, setActiveTab] =
   useState("home");
+ 
+  // ====================
+// CREATE WALLET
+// ==================== 
   
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
@@ -29,6 +36,9 @@ function App() {
     setSeedPhrase(phrase);
     setScreen("backup");
   }
+  // ====================
+// IMPORT WALLET
+// ====================
   function importWallet() {
   try {
     const importedWallet =
@@ -54,6 +64,9 @@ function App() {
     alert("Invalid Seed Phrase");
   }
   }
+  // ====================
+// AUTO LOGIN
+// ====================
   useEffect(() => {
   const savedWallet =
     localStorage.getItem(
@@ -77,7 +90,9 @@ function App() {
     console.log(err);
   }
 }, []);
-  
+  // ====================
+// BACKUP SCREEN
+// ====================
   if (screen === "backup") {
     return (
       <div
@@ -127,7 +142,9 @@ function App() {
       </div>
     );
   }
-
+// ====================
+// DASHBOARD
+// ====================
   if (screen === "dashboard") {
     return (
       <div
@@ -159,6 +176,9 @@ function App() {
     marginBottom: 20,
   }}
 >
+// ====================
+// LOGOUT BUTTON
+// ====================
   Logout
 </button>
     
@@ -183,6 +203,9 @@ function App() {
             marginTop: 20,
           }}
         >
+          // ====================
+// WALLET ADDRESS
+// ====================
           <p>Wallet Address</p>
 
           <p
@@ -212,6 +235,9 @@ function App() {
     fontWeight: "bold",
   }}
 >
+// ====================
+// COPY ADDRESS
+// ====================
   Copy Address
 </button>
     
@@ -247,6 +273,9 @@ function App() {
     borderTop: "1px solid #334155",
   }}
 >
+  // ====================
+// BOTTOM NAVIGATION
+// ====================
   <button
     onClick={() => setActiveTab("home")}
     style={{
@@ -312,7 +341,9 @@ function App() {
       </div>
     );
   }
-
+// ====================
+// WELCOME SCREEN
+// ====================
   return (
     <div
       style={{
