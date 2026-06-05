@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
 function App() {
- // ====================
+ {/* ====================
 // STATE
-// ====================
+// ==================== */}
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
   const [seedPhrase, setSeedPhrase] = useState("");
@@ -12,9 +12,9 @@ function App() {
   const [activeTab, setActiveTab] =
   useState("home");
  
-  // ====================
+ {/* ====================
 // CREATE WALLET
-// ==================== 
+// ====================*/}
   
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
@@ -36,9 +36,10 @@ function App() {
     setSeedPhrase(phrase);
     setScreen("backup");
   }
-  // ====================
+  
+ {/* ====================
 // IMPORT WALLET
-// ====================
+// ====================*/}
   
  function importWallet() {
   try {
@@ -66,9 +67,9 @@ function App() {
   }
   }
   
- // ====================
+ {/* ====================
 // AUTO LOGIN
-// ====================
+// ====================*/}
   
  useEffect(() => {
   const savedWallet =
@@ -94,9 +95,9 @@ function App() {
   }
 }, []);
   
- // ====================
+ {/* ====================
 // BACKUP SCREEN
-// ====================
+// ====================*/}
   
  if (screen === "backup") {
     return (
@@ -148,9 +149,9 @@ function App() {
     );
   }
 
-// ====================
+{/* ====================
 // DASHBOARD
-// ====================
+// ====================*/}
   
 if (screen === "dashboard") {
     return (
@@ -184,9 +185,9 @@ if (screen === "dashboard") {
   }}
 >
 
-// ====================
+{/* ====================
 // LOGOUT BUTTON
-// ====================
+// ====================*/}
   
 Logout
 </button>
@@ -212,9 +213,9 @@ Logout
             marginTop: 20,
           }}
         >
-          // ====================
+{/* ====================
 // WALLET ADDRESS
-// ====================
+// ====================*/}
           
          <p>Wallet Address</p>
 
@@ -246,9 +247,9 @@ Logout
   }}
 >
 
-// ====================
+{/* ====================
 // COPY ADDRESS
-// ====================
+// ====================*/}
   
  Copy Address
 </button>
@@ -286,9 +287,9 @@ Logout
   }}
 >
  
- // ====================
+{/* ====================
 // BOTTOM NAVIGATION
-// ====================
+// ====================*/}
   
  <button
     onClick={() => setActiveTab("home")}
@@ -356,9 +357,9 @@ Logout
     );
   }
 
-// ====================
+{/* ====================
 // WELCOME SCREEN
-// ====================
+// ====================*/}
   
 return (
     <div
