@@ -39,7 +39,8 @@ function App() {
   // ====================
 // IMPORT WALLET
 // ====================
-  function importWallet() {
+  
+ function importWallet() {
   try {
     const importedWallet =
       ethers.Wallet.fromPhrase(
@@ -64,10 +65,12 @@ function App() {
     alert("Invalid Seed Phrase");
   }
   }
-  // ====================
+  
+ // ====================
 // AUTO LOGIN
 // ====================
-  useEffect(() => {
+  
+ useEffect(() => {
   const savedWallet =
     localStorage.getItem(
       "sendera_wallet"
@@ -90,10 +93,12 @@ function App() {
     console.log(err);
   }
 }, []);
-  // ====================
+  
+ // ====================
 // BACKUP SCREEN
 // ====================
-  if (screen === "backup") {
+  
+ if (screen === "backup") {
     return (
       <div
         style={{
@@ -142,10 +147,12 @@ function App() {
       </div>
     );
   }
+
 // ====================
 // DASHBOARD
 // ====================
-  if (screen === "dashboard") {
+  
+if (screen === "dashboard") {
     return (
       <div
         style={{
@@ -176,10 +183,12 @@ function App() {
     marginBottom: 20,
   }}
 >
+
 // ====================
 // LOGOUT BUTTON
 // ====================
-  Logout
+  
+Logout
 </button>
     
         <div
@@ -206,7 +215,8 @@ function App() {
           // ====================
 // WALLET ADDRESS
 // ====================
-          <p>Wallet Address</p>
+          
+         <p>Wallet Address</p>
 
           <p
             style={{
@@ -235,10 +245,12 @@ function App() {
     fontWeight: "bold",
   }}
 >
+
 // ====================
 // COPY ADDRESS
 // ====================
-  Copy Address
+  
+ Copy Address
 </button>
     
         <div
@@ -273,10 +285,12 @@ function App() {
     borderTop: "1px solid #334155",
   }}
 >
-  // ====================
+ 
+ // ====================
 // BOTTOM NAVIGATION
 // ====================
-  <button
+  
+ <button
     onClick={() => setActiveTab("home")}
     style={{
       background: "none",
@@ -341,10 +355,12 @@ function App() {
       </div>
     );
   }
+
 // ====================
 // WELCOME SCREEN
 // ====================
-  return (
+  
+return (
     <div
       style={{
         minHeight: "100vh",
