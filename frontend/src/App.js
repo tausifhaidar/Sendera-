@@ -287,9 +287,7 @@ Logout
     padding: 15,
     borderTop: "1px solid #334155",
   }}
->
- </>
-)}
+ >
 
 {/* RECEIVE TAB */}
  
