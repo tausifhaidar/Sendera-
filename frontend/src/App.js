@@ -184,10 +184,8 @@ if (screen === "dashboard") {
     marginBottom: 20,
   }}
 >
-{/* HOME TAB */}
- {activeTab === "home" && (
-<>
-{/* ====================
+ 
+ {/* ====================
 // LOGOUT BUTTON
 // ====================*/}
   
