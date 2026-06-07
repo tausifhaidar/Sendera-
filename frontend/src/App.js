@@ -191,7 +191,10 @@ if (screen === "dashboard") {
   
 Logout
 </button>
-    
+    {/* HOME TAB */}
+
+{activeTab === "home" && (
+<>
         <div
           style={{
             background: "#0f172a",
@@ -275,7 +278,9 @@ Logout
            
            
         </div>
-        <div
+        </>
+      )}
+           <div
   style={{
     position: "fixed",
     bottom: 0,
