@@ -280,22 +280,8 @@ Logout
         </div>
         </>
       )}
-           <div
-  style={{
-    position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    background: "#0f172a",
-    display: "flex",
-    justifyContent: "space-around",
-    padding: 15,
-    borderTop: "1px solid #334155",
-  }}
- >
-
-{/* RECEIVE TAB */}
- 
+{/*Reciv Tab*/}    
+        
  {activeTab === "receive" && (
   <div
     style={{
@@ -338,6 +324,22 @@ Logout
     </button>
   </div>
 )}
+       <div
+  style={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: "#0f172a",
+    display: "flex",
+    justifyContent: "space-around",
+    padding: 15,
+    borderTop: "1px solid #334155",
+  }}
+ >
+
+
+
 
 {/* ====================
 // BOTTOM NAVIGATION
