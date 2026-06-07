@@ -184,7 +184,9 @@ if (screen === "dashboard") {
     marginBottom: 20,
   }}
 >
-
+{/* HOME TAB */}
+ {activeTab === "home" && (
+<>
 {/* ====================
 // LOGOUT BUTTON
 // ====================*/}
@@ -286,7 +288,54 @@ Logout
     borderTop: "1px solid #334155",
   }}
 >
+ </>
+)}
+
+{/* RECEIVE TAB */}
  
+ {activeTab === "receive" && (
+  <div
+    style={{
+      background: "#0f172a",
+      padding: 20,
+      borderRadius: 16,
+      marginTop: 20,
+    }}
+  >
+    <h2>Receive Crypto</h2>
+
+    <p>Wallet Address</p>
+
+    <p
+      style={{
+        wordBreak: "break-all",
+      }}
+    >
+      {wallet?.address}
+    </p>
+
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(
+          wallet?.address || ""
+        );
+        alert("Address Copied");
+      }}
+      style={{
+        width: "100%",
+        padding: 12,
+        borderRadius: 12,
+        border: "none",
+        background: "#22c55e",
+        color: "white",
+        marginTop: 10,
+      }}
+    >
+      Copy Address
+    </button>
+  </div>
+)}
+
 {/* ====================
 // BOTTOM NAVIGATION
 // ====================*/}
