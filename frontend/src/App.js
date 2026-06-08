@@ -325,14 +325,15 @@ Logout
     </button>
   </div>
 )}
-  <div
+  
+ <div
    <BottomNav
   activeTab={activeTab}
   setActiveTab={setActiveTab}
 />
 
 )}
-</div>
+
     
 
 {/* ====================
