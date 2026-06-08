@@ -326,6 +326,10 @@ Logout
   </div>
 )}
 
+<BottomNav
+  activeTab={activeTab}
+  setActiveTab={setActiveTab}
+/>
    
 {/* ====================
 // WELCOME SCREEN
@@ -414,7 +418,8 @@ return (
     }}
   >
     Import Wallet
-  </button>
+  </div>
+     </button>
 </div>
 </div>
   );
