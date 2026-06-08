@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import BottomNav from "./components/BottomNav";
 
 function App() {
  {/* ====================
