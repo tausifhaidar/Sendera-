@@ -326,10 +326,6 @@ Logout
   </div>
 )}
 
- <BottomNav
-  activeTab={activeTab}
-  setActiveTab={setActiveTab}
-/>
    
 {/* ====================
 // WELCOME SCREEN
