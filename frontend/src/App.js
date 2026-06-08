@@ -325,17 +325,12 @@ Logout
     </button>
   </div>
 )}
-  
- <div
-   <BottomNav
+
+ <BottomNav
   activeTab={activeTab}
   setActiveTab={setActiveTab}
 />
-
-)}
-
-    
-
+   
 {/* ====================
 // WELCOME SCREEN
 // ====================*/}
