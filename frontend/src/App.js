@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+
+import HomeTab from "./components/HomeTab";
+import ReceiveTab from "./components/ReceiveTab";
+import HistoryTab from "./components/HistoryTab";
+import SettingTab from "./components/SettingTab";
 import BottomNav from "./components/BottomNav";
 
 function App() {
- {/* ====================
-// STATE
-// ==================== */}
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
   const [seedPhrase, setSeedPhrase] = useState("");
   const [importPhrase, setImportPhrase] = useState("");
-  const [activeTab, setActiveTab] =
-  useState("home");
- 
- {/* ====================
-// CREATE WALLET
-// ====================*/}
-  
+  const [activeTab, setActiveTab] = useState("home");
+
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
 
@@ -27,8 +24,7 @@ function App() {
       "sendera_wallet",
       JSON.stringify({
         address: newWallet.address,
-        privateKey:
-          newWallet.privateKey,
+        privateKey: newWallet.privateKey,
         phrase,
       })
     );
@@ -37,70 +33,54 @@ function App() {
     setSeedPhrase(phrase);
     setScreen("backup");
   }
-  
- {/* ====================
-// IMPORT WALLET
-// ====================*/}
-  
- function importWallet() {
-  try {
-    const importedWallet =
-      ethers.Wallet.fromPhrase(
-        importPhrase.trim()
+
+  function importWallet() {
+    try {
+      const importedWallet =
+        ethers.Wallet.fromPhrase(
+          importPhrase.trim()
+        );
+
+      localStorage.setItem(
+        "sendera_wallet",
+        JSON.stringify({
+          address: importedWallet.address,
+          privateKey:
+            importedWallet.privateKey,
+          phrase: importPhrase.trim(),
+        })
       );
 
-    localStorage.setItem(
-      "sendera_wallet",
-      JSON.stringify({
-        address:
-          importedWallet.address,
-        privateKey:
-          importedWallet.privateKey,
-        phrase:
-          importPhrase.trim(),
-      })
-    );
-
-    setWallet(importedWallet);
-    setScreen("dashboard");
-  } catch (err) {
-    alert("Invalid Seed Phrase");
+      setWallet(importedWallet);
+      setScreen("dashboard");
+    } catch {
+      alert("Invalid Seed Phrase");
+    }
   }
-  }
-  
- {/* ====================
-// AUTO LOGIN
-// ====================*/}
-  
- useEffect(() => {
-  const savedWallet =
-    localStorage.getItem(
-      "sendera_wallet"
-    );
 
-  if (!savedWallet) return;
-
-  try {
-    const data =
-      JSON.parse(savedWallet);
-
-    const restoredWallet =
-      new ethers.Wallet(
-        data.privateKey
+  useEffect(() => {
+    const savedWallet =
+      localStorage.getItem(
+        "sendera_wallet"
       );
 
-    setWallet(restoredWallet);
-    setScreen("dashboard");
-  } catch (err) {
-    console.log(err);
-  }
-}, []);
-  
- {/* ====================
-// BACKUP SCREEN
-// ====================*/}
-  
- if (screen === "backup") {
+    if (!savedWallet) return;
+
+    try {
+      const data =
+        JSON.parse(savedWallet);
+
+      const restoredWallet =
+        new ethers.Wallet(
+          data.privateKey
+        );
+
+      setWallet(restoredWallet);
+      setScreen("dashboard");
+    } catch {}
+  }, []);
+
+if (screen === "backup") {
     return (
       <div
         style={{
@@ -108,7 +88,6 @@ function App() {
           background: "#020617",
           color: "white",
           padding: 20,
-          fontFamily: "Arial",
         }}
       >
         <h1>Backup Wallet</h1>
@@ -135,13 +114,8 @@ function App() {
           }
           style={{
             width: "100%",
-            marginTop: 20,
             padding: 16,
-            borderRadius: 12,
-            border: "none",
-            background: "#22c55e",
-            color: "white",
-            fontWeight: "bold",
+            marginTop: 20,
           }}
         >
           I Saved It
@@ -150,11 +124,7 @@ function App() {
     );
   }
 
-{/* ====================
-// DASHBOARD
-// ====================*/}
-  
-if (screen === "dashboard") {
+  if (screen === "dashboard") {
     return (
       <div
         style={{
@@ -162,179 +132,38 @@ if (screen === "dashboard") {
           background: "#020617",
           color: "white",
           padding: 20,
-          fontFamily: "Arial",
+          paddingBottom: 100,
         }}
       >
-        <h1>Sendera</h1>
-         <button
-  onClick={() => {
-    localStorage.removeItem(
-      "sendera_wallet"
-    );
+        {activeTab === "home" && (
+          <HomeTab wallet={wallet} />
+        )}
 
-    setWallet(null);
-    setSeedPhrase("");
-    setScreen("welcome");
-  }}
-  style={{
-    padding: 10,
-    borderRadius: 10,
-    border: "none",
-    background: "#ef4444",
-    color: "white",
-    marginBottom: 20,
-  }}
->
- 
- {/* ====================
-// LOGOUT BUTTON
-// ====================*/}
-  
-Logout
-</button>
-    {/* HOME TAB */}
+        {activeTab === "receive" && (
+          <ReceiveTab wallet={wallet} />
+        )}
 
-{activeTab === "home" && (
-<>
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 16,
-            marginTop: 20,
-          }}
-        >
-          <p>Total Balance</p>
+        {activeTab === "history" && (
+          <HistoryTab />
+        )}
 
-          <h2>$0.00</h2>
-        </div>
-
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 16,
-            marginTop: 20,
-          }}
-        >
-{/* ====================
-// WALLET ADDRESS
-// ====================*/}
-          
-         <p>Wallet Address</p>
-
-          <p
-            style={{
-              wordBreak: "break-all",
-            }}
-          >
-            {wallet?.address}
-          </p>
-        </div>
-
-         <button
-  onClick={() => {
-    navigator.clipboard.writeText(
-      wallet?.address || ""
-    );
-    alert("Address Copied");
-  }}
-  style={{
-    marginTop: 12,
-    width: "100%",
-    padding: 12,
-    borderRadius: 12,
-    border: "none",
-    background: "#2563eb",
-    color: "white",
-    fontWeight: "bold",
-  }}
->
-
-{/* ====================
-// COPY ADDRESS
-// ====================*/}
-  
- Copy Address
-</button>
-    
-        <div
-          style={{
-            marginTop: 20,
-          }}
-        >
-          <input
-            placeholder="Ask Sendera..."
-            style={{
-              width: "100%",
-              padding: 16,
-              borderRadius: 12,
-              border: "none",
-              background: "#1e293b",
-              color: "white",
-              boxSizing:
-                "border-box",
-            }}
+        {activeTab === "settings" && (
+          <SettingTab
+            wallet={wallet}
+            setWallet={setWallet}
+            setSeedPhrase={setSeedPhrase}
+            setScreen={setScreen}
           />
-           
-           
-        </div>
-        </>
-      )}
-{/*Reciv Tab*/}    
-        
- {activeTab === "receive" && (
-  <div
-    style={{
-      background: "#0f172a",
-      padding: 20,
-      borderRadius: 16,
-      marginTop: 20,
-    }}
-  >
-    <h2>Receive Crypto</h2>
+        )}
 
-    <p>Wallet Address</p>
+        <BottomNav
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      </div>
+    );
+       }
 
-    <p
-      style={{
-        wordBreak: "break-all",
-      }}
-    >
-      {wallet?.address}
-    </p>
-
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(
-          wallet?.address || ""
-        );
-        alert("Address Copied");
-      }}
-      style={{
-        width: "100%",
-        padding: 12,
-        borderRadius: 12,
-        border: "none",
-        background: "#22c55e",
-        color: "white",
-        marginTop: 10,
-      }}
-    >
-      Copy Address
-    </button>
-  </div>
-)}
-
-<BottomNav
-  activeTab={activeTab}
-  setActiveTab={setActiveTab}
-/>
-   
-{/* ====================
-// WELCOME SCREEN
-// ====================*/}
-  
 return (
     <div
       style={{
@@ -342,21 +171,15 @@ return (
         background: "#020617",
         color: "white",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        flexDirection: "column",
-        fontFamily: "Arial",
         padding: 20,
       }}
     >
       <h1>Sendera</h1>
 
-      <p
-        style={{
-          color: "#94a3b8",
-          marginBottom: 40,
-        }}
-      >
+      <p>
         Your AI Crypto Assistant
       </p>
 
@@ -365,63 +188,37 @@ return (
         style={{
           width: 250,
           padding: 16,
-          borderRadius: 14,
-          border: "none",
-          background: "#22c55e",
-          color: "white",
-          fontSize: 18,
-          fontWeight: "bold",
           marginBottom: 15,
         }}
       >
         Create Wallet
       </button>
 
-      <div
-  style={{
-    width: 250,
-  }}
->
-  <textarea
-    placeholder="Paste Seed Phrase"
-    value={importPhrase}
-    onChange={(e) =>
-      setImportPhrase(
-        e.target.value
-      )
-    }
-    style={{
-      width: "100%",
-      height: 100,
-      padding: 12,
-      borderRadius: 12,
-      marginBottom: 10,
-      background: "#0f172a",
-      color: "white",
-      border:
-        "1px solid #334155",
-      boxSizing:
-        "border-box",
-    }}
-  />
+      <textarea
+        placeholder="Paste Seed Phrase"
+        value={importPhrase}
+        onChange={(e) =>
+          setImportPhrase(
+            e.target.value
+          )
+        }
+        style={{
+          width: 250,
+          height: 100,
+          marginBottom: 10,
+        }}
+      />
 
-  <button
-    onClick={importWallet}
-    style={{
-      width: "100%",
-      padding: 16,
-      borderRadius: 14,
-      border: "1px solid #334155",
-      background: "#0f172a",
-      color: "white",
-      fontSize: 18,
-    }}
-  >
-    Import Wallet
-  </div>
-     </button>
-</div>
-</div>
+      <button
+        onClick={importWallet}
+        style={{
+          width: 250,
+          padding: 16,
+        }}
+      >
+        Import Wallet
+      </button>
+    </div>
   );
 }
 
