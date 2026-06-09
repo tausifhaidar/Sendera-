@@ -1,5 +1,5 @@
 function HomeTab() {
-  return null;
+  return <div>Home Tab</div>;
 }
 
 export default HomeTab;
