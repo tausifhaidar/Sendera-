@@ -1,5 +1,5 @@
 function HistoryTab() {
-  return null;
+  return <div>History Tab</div>;
 }
 
 export default HistoryTab;
