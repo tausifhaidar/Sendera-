@@ -1,5 +1,5 @@
 function SettingTab() {
-  return null;
+  return <div>Settings Tab</div>;
 }
 
 export default SettingTab;
