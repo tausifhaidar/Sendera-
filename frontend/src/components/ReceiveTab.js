@@ -1,5 +1,5 @@
 function ReceiveTab() {
-  return null;
+  return <div>Receive Tab</div>;
 }
 
 export default ReceiveTab;
