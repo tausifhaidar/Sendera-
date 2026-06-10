@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
+import SendTab from "./components/SendTab";
 import HomeTab from "./components/HomeTab";
 import ReceiveTab from "./components/ReceiveTab";
 import HistoryTab from "./components/HistoryTab";
@@ -138,8 +139,12 @@ if (screen === "backup") {
         {activeTab === "home" && (
           <HomeTab wallet={wallet} />
         )}
-
-        {activeTab === "receive" && (
+        
+         {activeTab === "send" && (
+           <SendTab />
+         )}
+        
+{activeTab === "receive" && (
           <ReceiveTab wallet={wallet} />
         )}
 
