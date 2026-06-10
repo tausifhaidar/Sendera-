@@ -1,3 +1,4 @@
+import PortfolioCard from "./PortfolioCard";
 import BalanceCard from "./BalanceCard";
 import WalletCard from "./WalletCard";
 
@@ -18,6 +19,8 @@ return (
       marginTop: 20,
     }}
   >
+    <PortfolioCard />
+    
     <h3>AI Assistant</h3>
 
     <input
