@@ -4,24 +4,19 @@ import BalanceCard from "./BalanceCard";
 import WalletCard from "./WalletCard";
 
 function HomeTab({ wallet }) {
-return (
-<div>
-<h1>Sendera</h1>
+  return (
+    <div>
+      <h1>Sendera</h1>
 
-  <BalanceCard />
+      <BalanceCard />
 
-  <WalletCard wallet={wallet} />
+      <WalletCard wallet={wallet} />
 
-  <div
-    style={{
-      background: "#0f172a",
-      padding: 20,
-      borderRadius: 16,
-      marginTop: 20,
-    }}
-  >
-    <PortfolioCard />
-    
-    <AIChatBox />
+      <PortfolioCard />
+
+      <AIChatBox />
+    </div>
+  );
+}
 
 export default HomeTab;
