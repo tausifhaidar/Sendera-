@@ -77,6 +77,9 @@ function App() {
         );
 
       setWallet(restoredWallet);
+      setSeedPhrase(
+  data.phrase || ""
+);
       setScreen("dashboard");
     } catch {}
   }, []);
