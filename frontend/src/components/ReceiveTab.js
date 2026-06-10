@@ -43,18 +43,7 @@ function ReceiveTab({ wallet }) {
         </button>
       </div>
 
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 16,
-          marginTop: 20,
-          textAlign: "center",
-        }}
-      >
-        <h3>QR Code</h3>
-        <p>Coming Soon</p>
-      </div>
+      <QRCard />
     </div>
   );
 }
