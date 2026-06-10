@@ -31,6 +31,20 @@ function BottomNav({
       </button>
 
       <button
+        onClick={() => setActiveTab("send")}
+        style={{
+          background: "none",
+          border: "none",
+          color:
+            activeTab === "send"
+              ? "#22c55e"
+              : "white",
+        }}
+      >
+        Send
+      </button>
+
+      <button
         onClick={() =>
           setActiveTab("receive")
         }
