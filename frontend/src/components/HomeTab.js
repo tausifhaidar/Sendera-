@@ -21,6 +21,7 @@ return (
     }}
   >
     <PortfolioCard />
+    
     <AIChatBox />
 
 export default HomeTab;
