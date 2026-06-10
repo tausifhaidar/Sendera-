@@ -155,6 +155,7 @@ if (screen === "backup") {
         {activeTab === "settings" && (
           <SettingTab
             wallet={wallet}
+            seedPhrase={seedPhrase}
             setWallet={setWallet}
             setSeedPhrase={setSeedPhrase}
             setScreen={setScreen}
