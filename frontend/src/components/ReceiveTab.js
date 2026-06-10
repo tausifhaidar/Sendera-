@@ -1,3 +1,4 @@
+import QRCard from "./QRCard";
 function ReceiveTab({ wallet }) {
   return (
     <div>
