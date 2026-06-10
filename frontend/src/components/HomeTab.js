@@ -1,3 +1,4 @@
+import AIActionCard from "./AIActionCard";
 import AIChatBox from "./AIChatBox";
 import PortfolioCard from "./PortfolioCard";
 import BalanceCard from "./BalanceCard";
@@ -13,7 +14,9 @@ function HomeTab({ wallet }) {
       <WalletCard wallet={wallet} />
 
       <PortfolioCard />
-
+      
+      <AIActionCard />
+  
       <AIChatBox />
     </div>
   );
