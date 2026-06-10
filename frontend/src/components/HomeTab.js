@@ -1,3 +1,4 @@
+import BalanceCard from "./BalanceCard";
 import WalletCard from "./WalletCard";
 
 function HomeTab({ wallet }) {
@@ -5,17 +6,7 @@ return (
 <div>
 <h1>Sendera</h1>
 
-  <div
-    style={{
-      background: "#0f172a",
-      padding: 20,
-      borderRadius: 16,
-      marginTop: 20,
-    }}
-  >
-    <p>Total Balance</p>
-    <h2>$0.00</h2>
-  </div>
+  <BalanceCard />
 
   <WalletCard wallet={wallet} />
 
