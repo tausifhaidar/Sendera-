@@ -1,3 +1,4 @@
+import AIChatBox from "./AIChatBox";
 import PortfolioCard from "./PortfolioCard";
 import BalanceCard from "./BalanceCard";
 import WalletCard from "./WalletCard";
@@ -20,25 +21,6 @@ return (
     }}
   >
     <PortfolioCard />
-    
-    <h3>AI Assistant</h3>
-
-    <input
-      placeholder="Ask Sendera..."
-      style={{
-        width: "100%",
-        padding: 12,
-        borderRadius: 12,
-        border: "none",
-        background: "#1e293b",
-        color: "white",
-        boxSizing: "border-box",
-      }}
-    />
-  </div>
-</div>
-
-);
-}
+    <AIChatBox />
 
 export default HomeTab;
