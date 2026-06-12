@@ -1,3 +1,4 @@
+import NetworkSelector from "./NetworkSelector";
 function SettingTab({
 wallet,
 seedPhrase,
@@ -28,17 +29,7 @@ return (
     </p>
   </div>
 
-  <div
-    style={{
-      background: "#0f172a",
-      padding: 20,
-      borderRadius: 16,
-      marginTop: 20,
-    }}
-  >
-    <p>Network</p>
-    <p>Base Sepolia</p>
-  </div>
+  <NetworkSelector />
 
   <div
     style={{
