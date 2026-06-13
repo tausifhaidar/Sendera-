@@ -18,7 +18,7 @@ function App() {
   const [selectedNetwork, setSelectedNetwork] =
   useState("baseSepolia");
   const [balance, setBalance] =
-  useState("123.4567");
+useState("0.0000");
   
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
