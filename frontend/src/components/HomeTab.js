@@ -9,7 +9,10 @@ function HomeTab({ wallet }) {
     <div>
       <h1>Sendera</h1>
 
-      <BalanceCard />
+      <BalanceCard
+  balance="0.0000"
+  network="Base Sepolia"
+/>
 
       <WalletCard wallet={wallet} />
 
