@@ -94,15 +94,22 @@ useState("0.0000");
     if (!wallet) return;
 
     try {
+      const rpcUrl =
+        NETWORKS[selectedNetwork]?.rpc;
+
       const provider =
         new ethers.JsonRpcProvider(
-          NETWORKS[selectedNetwork].rpc
+          rpcUrl
         );
-           
 
-      const formattedBalance =
+      const balanceWei =
+        await provider.getBalance(
+          wallet.address
+        );
+
+      const balanceEth =
         ethers.formatEther(
-          rawBalance
+          balanceWei
         );
 
       console.log(
@@ -116,24 +123,17 @@ useState("0.0000");
       );
 
       console.log(
-        "Raw:",
-        rawBalance.toString()
+        "Balance:",
+        balanceEth
       );
 
-      console.log(
-        "Formatted:",
-        formattedBalance
-      );
+      setBalance(balanceEth);
+    } catch (error) {
+      console.error(error);
 
-      setBalance(
-        Number(
-          formattedBalance
-        ).toFixed(4)
-      );
-    } catch (err) {
-      console.log(
-        "BALANCE ERROR:",
-        err
+      alert(
+        "Balance Error: " +
+          error.message
       );
     }
   }
