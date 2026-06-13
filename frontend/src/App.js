@@ -199,6 +199,8 @@ if (screen === "backup") {
           <SettingTab
             wallet={wallet}
             seedPhrase={seedPhrase}
+            selectedNetwork={selectedNetwork}
+            setSelectedNetwork={setSelectedNetwork}
             setWallet={setWallet}
             setSeedPhrase={setSeedPhrase}
             setScreen={setScreen}
