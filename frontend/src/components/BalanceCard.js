@@ -13,7 +13,9 @@ function BalanceCard({
     >
       <p>Total Balance</p>
 
-      <h2>{balance} ETH</h2>
+      <h2>
+  {Number(balance || 0).toFixed(4)} ETH
+</h2>
 
       <p
         style={{
