@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
+import { NETWORKS } from "./components/rpcConfig";
 import SendTab from "./components/SendTab";
 import HomeTab from "./components/HomeTab";
 import ReceiveTab from "./components/ReceiveTab";
@@ -87,7 +88,39 @@ function App() {
       setScreen("dashboard");
     } catch {}
   }, []);
+useEffect(() => {
+  async function loadBalance() {
+    if (!wallet) return;
 
+    try {
+      const provider =
+        new ethers.JsonRpcProvider(
+          NETWORKS.baseSepolia.rpc
+        );
+
+      const rawBalance =
+        await provider.getBalance(
+          wallet.address
+        );
+
+      const formattedBalance =
+        ethers.formatEther(
+          rawBalance
+        );
+
+      setBalance(
+        Number(
+          formattedBalance
+        ).toFixed(4)
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  loadBalance();
+}, [wallet]);
+  
 if (screen === "backup") {
     return (
       <div
