@@ -94,9 +94,9 @@ useEffect(() => {
 
     try {
       const provider =
-        new ethers.JsonRpcProvider(
-          NETWORKS.baseSepolia.rpc
-        );
+  new ethers.JsonRpcProvider(
+    NETWORKS[selectedNetwork].rpc
+  );
 
       const rawBalance =
         await provider.getBalance(
@@ -119,7 +119,7 @@ useEffect(() => {
   }
 
   loadBalance();
-}, [wallet]);
+}, [wallet, selectedNetwork]);
   
 if (screen === "backup") {
     return (
