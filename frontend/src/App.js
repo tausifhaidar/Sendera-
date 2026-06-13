@@ -1,7 +1,7 @@
+import { NETWORKS } from "./components/rpcConfig";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
-import { NETWORKS } from "./components/rpcConfig";
 import SendTab from "./components/SendTab";
 import HomeTab from "./components/HomeTab";
 import ReceiveTab from "./components/ReceiveTab";
@@ -88,15 +88,16 @@ useState("0.0000");
       setScreen("dashboard");
     } catch {}
   }, []);
-useEffect(() => {
+
+  useEffect(() => {
   async function loadBalance() {
     if (!wallet) return;
 
     try {
       const provider =
-  new ethers.JsonRpcProvider(
-    NETWORKS[selectedNetwork].rpc
-  );
+        new ethers.JsonRpcProvider(
+          NETWORKS[selectedNetwork].rpc
+        );
 
       const rawBalance =
         await provider.getBalance(
@@ -108,13 +109,36 @@ useEffect(() => {
           rawBalance
         );
 
+      console.log(
+        "Network:",
+        selectedNetwork
+      );
+
+      console.log(
+        "Address:",
+        wallet.address
+      );
+
+      console.log(
+        "Raw:",
+        rawBalance.toString()
+      );
+
+      console.log(
+        "Formatted:",
+        formattedBalance
+      );
+
       setBalance(
         Number(
           formattedBalance
         ).toFixed(4)
       );
     } catch (err) {
-      console.log(err);
+      console.log(
+        "BALANCE ERROR:",
+        err
+      );
     }
   }
 
@@ -180,6 +204,7 @@ if (screen === "backup") {
           <HomeTab
                wallet={wallet}
               balance={balance}
+              selectedNetwork={selectedNetwork}
               />
               )}
         
@@ -187,7 +212,7 @@ if (screen === "backup") {
            <SendTab />
          )}
         
-{activeTab === "receive" && (
+        {activeTab === "receive" && (
           <ReceiveTab wallet={wallet} />
         )}
 
