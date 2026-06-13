@@ -98,7 +98,7 @@ useState("0.0000");
         new ethers.JsonRpcProvider(
           NETWORKS[selectedNetwork].rpc
         );
-      setBalance("999.9999");     
+           
 
       const formattedBalance =
         ethers.formatEther(
