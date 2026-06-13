@@ -7,6 +7,7 @@ import WalletCard from "./WalletCard";
 function HomeTab({
   wallet,
   balance,
+  selectedNetwork,
 }) {
   return (
     <div>
@@ -14,7 +15,7 @@ function HomeTab({
 
       <BalanceCard
         balance={balance}
-        network="Base Sepolia"
+        network={selectedNetwork}
       />
 
       <WalletCard wallet={wallet} />
