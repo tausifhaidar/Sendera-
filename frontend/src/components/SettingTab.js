@@ -2,6 +2,8 @@ import NetworkSelector from "./NetworkSelector";
 function SettingTab({
 wallet,
 seedPhrase,
+selectedNetwork,
+setSelectedNetwork,
 setWallet,
 setSeedPhrase,
 setScreen,
