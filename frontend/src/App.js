@@ -14,7 +14,9 @@ function App() {
   const [seedPhrase, setSeedPhrase] = useState("");
   const [importPhrase, setImportPhrase] = useState("");
   const [activeTab, setActiveTab] = useState("home");
-
+  const [selectedNetwork, setSelectedNetwork] =
+  useState("baseSepolia");
+  
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
 
