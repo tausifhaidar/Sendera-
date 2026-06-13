@@ -98,25 +98,8 @@ useState("0.0000");
         new ethers.JsonRpcProvider(
           NETWORKS[selectedNetwork].rpc
         );
-        
-      alert(
-  "Balance: " +
-  ethers.formatEther(rawBalance)
-);
-      const rawBalance =
-        await provider.getBalance(
-          wallet.address
-        );
-       alert(
-  "RAW: " +
-  rawBalance.toString()
-);
+      setBalance("999.9999");     
 
-alert(
-  "ETH: " +
-  ethers.formatEther(rawBalance)
-); 
-      
       const formattedBalance =
         ethers.formatEther(
           rawBalance
