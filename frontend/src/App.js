@@ -107,7 +107,16 @@ useState("0.0000");
         await provider.getBalance(
           wallet.address
         );
+       alert(
+  "RAW: " +
+  rawBalance.toString()
+);
 
+alert(
+  "ETH: " +
+  ethers.formatEther(rawBalance)
+); 
+      
       const formattedBalance =
         ethers.formatEther(
           rawBalance
