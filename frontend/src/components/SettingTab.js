@@ -29,7 +29,10 @@ return (
     </p>
   </div>
 
-  <NetworkSelector />
+  <NetworkSelector
+  selectedNetwork={selectedNetwork}
+  setSelectedNetwork={setSelectedNetwork}
+/>
 
   <div
     style={{
