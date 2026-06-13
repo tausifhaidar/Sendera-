@@ -178,9 +178,10 @@ if (screen === "backup") {
       >
         {activeTab === "home" && (
           <HomeTab
-  wallet={wallet}
-  balance={balance}
-/>
+               wallet={wallet}
+              balance={balance}
+              />
+              )}
         
          {activeTab === "send" && (
            <SendTab />
