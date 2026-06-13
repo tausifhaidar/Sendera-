@@ -7,21 +7,22 @@ import WalletCard from "./WalletCard";
 function HomeTab({
   wallet,
   balance,
-}) 
+}) {
+  return (
     <div>
       <h1>Sendera</h1>
 
       <BalanceCard
-  balance={balance}
-  network="Base Sepolia"
-/>
+        balance={balance}
+        network="Base Sepolia"
+      />
 
       <WalletCard wallet={wallet} />
 
       <PortfolioCard />
-      
+
       <AIActionCard />
-  
+
       <AIChatBox />
     </div>
   );
