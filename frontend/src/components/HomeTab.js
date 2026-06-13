@@ -4,13 +4,15 @@ import PortfolioCard from "./PortfolioCard";
 import BalanceCard from "./BalanceCard";
 import WalletCard from "./WalletCard";
 
-function HomeTab({ wallet }) {
-  return (
+function HomeTab({
+  wallet,
+  balance,
+}) 
     <div>
       <h1>Sendera</h1>
 
       <BalanceCard
-  balance="0.0000"
+  balance={balance}
   network="Base Sepolia"
 />
 
