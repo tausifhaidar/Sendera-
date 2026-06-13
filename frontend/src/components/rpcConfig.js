@@ -6,7 +6,7 @@ export const NETWORKS = {
 
   ethereumSepolia: {
     name: "Ethereum Sepolia",
-    rpc: "https://rpc.sepolia.org",
+    rpc: "https://ethereum-sepolia-rpc.publicnode.com",
   },
 
   polygonAmoy: {
