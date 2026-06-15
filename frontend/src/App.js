@@ -19,6 +19,8 @@ function App() {
   useState("baseSepolia");
   const [balance, setBalance] =
 useState("0.0000");
+  const [transactions, setTransactions] =
+  useState([]);
   
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
@@ -213,8 +215,11 @@ if (screen === "backup") {
         )}
 
         {activeTab === "history" && (
-          <HistoryTab />
-        )}
+  <HistoryTab
+    wallet={wallet}
+    selectedNetwork={selectedNetwork}
+  />
+)}
 
         {activeTab === "settings" && (
           <SettingTab
