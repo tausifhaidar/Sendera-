@@ -1,39 +1,58 @@
-function HistoryTab() {
-  const transactions = [
-    {
-      type: "Received",
-      amount: "0.05 ETH",
-      network: "Ethereum Sepolia",
-    },
-  ];
-
+function HistoryTab({
+  wallet,
+  selectedNetwork,
+}) {
   return (
     <div>
       <h2>Transaction History</h2>
 
-      {transactions.map((tx, index) => (
-        <div
-          key={index}
+      <div
+        style={{
+          background: "#0f172a",
+          padding: 20,
+          borderRadius: 16,
+          marginTop: 20,
+        }}
+      >
+        <p>
+          Wallet:
+        </p>
+
+        <p
           style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 16,
-            marginTop: 20,
+            wordBreak: "break-all",
           }}
         >
-          <h3>{tx.type}</h3>
+          {wallet?.address ||
+            "No Wallet"}
+        </p>
 
-          <p>{tx.amount}</p>
+        <p
+          style={{
+            marginTop: 10,
+            color: "#94a3b8",
+          }}
+        >
+          Network:
+          {" "}
+          {selectedNetwork}
+        </p>
+      </div>
 
-          <p
-            style={{
-              color: "#94a3b8",
-            }}
-          >
-            {tx.network}
-          </p>
-        </div>
-      ))}
+      <div
+        style={{
+          background: "#0f172a",
+          padding: 20,
+          borderRadius: 16,
+          marginTop: 20,
+          textAlign: "center",
+        }}
+      >
+        <p>
+          Real Transaction Sync
+          Coming Soon
+        </p>
+      </div>
     </div>
   );
 }
