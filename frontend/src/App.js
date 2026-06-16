@@ -149,8 +149,7 @@ useState("0.0000");
 
     try {
       const API_KEY =
-        import.meta.env
-          .VITE_ETHERSCAN_API_KEY;
+  "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
 
       const response =
         await fetch(
