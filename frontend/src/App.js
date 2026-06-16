@@ -143,7 +143,47 @@ useState("0.0000");
   loadBalance();
 }, [wallet, selectedNetwork]);
   
-if (screen === "backup") {
+  useEffect(() => {
+  async function loadTransactions() {
+    if (!wallet) return;
+
+    try {
+      const API_KEY =
+        import.meta.env
+          .VITE_ETHERSCAN_API_KEY;
+
+      const response =
+        await fetch(
+          `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
+        );
+
+      const data =
+        await response.json();
+
+      if (
+        data.status === "1"
+      ) {
+        setTransactions(
+          data.result
+        );
+      }
+    } catch (error) {
+      console.log(
+        "Transaction Error:",
+        error
+      );
+    }
+  }
+
+  if (
+    selectedNetwork ===
+    "ethereumSepolia"
+  ) {
+    loadTransactions();
+  }
+}, [wallet, selectedNetwork]);
+
+  if (screen === "backup") {
     return (
       <div
         style={{
@@ -215,11 +255,11 @@ if (screen === "backup") {
         )}
 
         {activeTab === "history" && (
-  <HistoryTab
-    wallet={wallet}
-    selectedNetwork={selectedNetwork}
-  />
-)}
+          <HistoryTab
+  wallet={wallet}
+  selectedNetwork={selectedNetwork}
+  transactions={transactions}
+/> 
 
         {activeTab === "settings" && (
           <SettingTab
