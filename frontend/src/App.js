@@ -149,7 +149,8 @@ useState("0.0000");
 
     try {
       const API_KEY =
-  "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
+  import.meta.env
+    .VITE_ETHERSCAN_API_KEY;
 
       const response = await fetch(
   `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
