@@ -147,6 +147,11 @@ useState("0.0000");
   async function loadTransactions() {
     if (!wallet) return;
 
+    alert(
+    import.meta.env
+      .VITE_ETHERSCAN_API_KEY
+  );
+    
     try {
       const API_KEY =
   import.meta.env
