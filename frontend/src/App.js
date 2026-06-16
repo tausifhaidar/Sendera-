@@ -256,10 +256,11 @@ useState("0.0000");
 
         {activeTab === "history" && (
           <HistoryTab
-  wallet={wallet}
-  selectedNetwork={selectedNetwork}
-  transactions={transactions}
-/> 
+            wallet={wallet}
+            selectedNetwork={selectedNetwork}
+            transactions={transactions}
+          /> 
+        )}
 
         {activeTab === "settings" && (
           <SettingTab
