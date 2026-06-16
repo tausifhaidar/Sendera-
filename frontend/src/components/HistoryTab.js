@@ -1,58 +1,66 @@
 function HistoryTab({
-  wallet,
-  selectedNetwork,
+  transactions = [],
 }) {
   return (
     <div>
-      <h2>Transaction History</h2>
+      <h2>
+        Transaction History
+      </h2>
 
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 16,
-          marginTop: 20,
-        }}
-      >
-        <p>
-          Wallet:
-        </p>
+      {transactions.length >
+      0 ? (
+        transactions.map(
+          (tx) => (
+            <div
+              key={tx.hash}
+              style={{
+                background:
+                  "#0f172a",
+                padding: 20,
+                borderRadius: 16,
+                marginTop: 20,
+              }}
+            >
+              <p>
+                {(Number(
+                  tx.value
+                ) /
+                  1e18
+                ).toFixed(
+                  4
+                )}{" "}
+                ETH
+              </p>
 
-        <p
+              <p
+                style={{
+                  fontSize: 12,
+                  color:
+                    "#94a3b8",
+                  wordBreak:
+                    "break-all",
+                }}
+              >
+                {tx.hash}
+              </p>
+            </div>
+          )
+        )
+      ) : (
+        <div
           style={{
-            wordBreak: "break-all",
+            background:
+              "#0f172a",
+            padding: 20,
+            borderRadius: 16,
+            marginTop: 20,
+            textAlign:
+              "center",
           }}
         >
-          {wallet?.address ||
-            "No Wallet"}
-        </p>
-
-        <p
-          style={{
-            marginTop: 10,
-            color: "#94a3b8",
-          }}
-        >
-          Network:
-          {" "}
-          {selectedNetwork}
-        </p>
-      </div>
-
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 16,
-          marginTop: 20,
-          textAlign: "center",
-        }}
-      >
-        <p>
-          Real Transaction Sync
-          Coming Soon
-        </p>
-      </div>
+          No Transactions
+        </div>
+      )}
     </div>
   );
 }
