@@ -96,14 +96,23 @@ function SendTab({
         Preview Transaction
       </button>
 
-      {showPreview && (
-        <TransactionPreview
-          address={recipient}
-          amount={sendAmount}
-        />
-      )}
-    </div>
+         {showPreview && (
+      <TransactionPreview
+        wallet={wallet}
+        network="Ethereum Sepolia"
+        address={recipient}
+        amount={sendAmount}
+        onCancel={() =>
+          setShowPreview(false)
+        }
+        onConfirm={() =>
+          alert("Next Step: Real Transaction")
+         }
+       />
+     )}
+
+   </div>
   );
-}
+ }
 
 export default SendTab;
