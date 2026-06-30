@@ -251,17 +251,17 @@ const [showPreview, setShowPreview] =
               />
               )}
         
-         {activeTab === "send" && (
-           <SendTab
-  wallet={wallet}
-  recipient={recipient}
-  setRecipient={setRecipient}
-  sendAmount={sendAmount}
-  setSendAmount={setSendAmount}
-  showPreview={showPreview}
-  setShowPreview={setShowPreview}
+        {activeTab === "send" && (
+  <SendTab
+    wallet={wallet}
+    recipient={recipient}
+    setRecipient={setRecipient}
+    sendAmount={sendAmount}
+    setSendAmount={setSendAmount}
+    showPreview={showPreview}
+    setShowPreview={setShowPreview}
   />
-)} 
+)}
           
  
           
