@@ -21,6 +21,14 @@ function App() {
 useState("0.0000");
   const [transactions, setTransactions] =
   useState([]);
+  const [recipient, setRecipient] =
+  useState("");
+
+const [sendAmount, setSendAmount] =
+  useState("");
+
+const [showPreview, setShowPreview] =
+  useState(false);l
   
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
@@ -244,12 +252,24 @@ useState("0.0000");
               )}
         
          {activeTab === "send" && (
-           <SendTab />
-         )}
+           <SendTab
+  wallet={wallet}
+  recipient={recipient}
+  setRecipient={setRecipient}
+  sendAmount={sendAmount}
+  setSendAmount={setSendAmount}
+  showPreview={showPreview}
+  setShowPreview={setShowPreview}
+  />
+)} 
+          
+ 
+          
         
         {activeTab === "receive" && (
           <ReceiveTab wallet={wallet} />
         )}
+         
 
         {activeTab === "history" && (
           <HistoryTab
