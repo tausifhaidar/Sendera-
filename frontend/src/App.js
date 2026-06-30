@@ -20,7 +20,7 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [recipient, setRecipient] = useState("");
   const [sendAmount, setSendAmount] = useState("");
-  const [showPreview, setShowPreview] = useState(false);l
+  const [showPreview, setShowPreview] = useState(false);
 
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
