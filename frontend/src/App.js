@@ -15,21 +15,13 @@ function App() {
   const [seedPhrase, setSeedPhrase] = useState("");
   const [importPhrase, setImportPhrase] = useState("");
   const [activeTab, setActiveTab] = useState("home");
-  const [selectedNetwork, setSelectedNetwork] =
-  useState("baseSepolia");
-  const [balance, setBalance] =
-useState("0.0000");
-  const [transactions, setTransactions] =
-  useState([]);
-  const [recipient, setRecipient] =
-  useState("");
+  const [selectedNetwork, setSelectedNetwork] = useState("baseSepolia");
+  const [balance, setBalance] = useState("0.0000");
+  const [transactions, setTransactions] = useState([]);
+  const [recipient, setRecipient] = useState("");
+  const [sendAmount, setSendAmount] = useState("");
+  const [showPreview, setShowPreview] = useState(false);l
 
-const [sendAmount, setSendAmount] =
-  useState("");
-
-const [showPreview, setShowPreview] =
-  useState(false);l
-  
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
 
