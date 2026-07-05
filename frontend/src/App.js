@@ -252,6 +252,8 @@ function App() {
             setSendAmount={setSendAmount}
             showPreview={showPreview}
             setShowPreview={setShowPreview}
+            selectedNetwork={selectedNetwork}
+            setBalance={setBalance}
             />
           )}
           
