@@ -65,7 +65,40 @@ function App() {
       alert("Invalid Seed Phrase");
     }
   }
+  async function sendTransaction(to, amount) {
+  try {
+    const rpcUrl = NETWORKS[selectedNetwork].rpc;
 
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+
+    const signer = wallet.connect(provider);
+
+    if (!ethers.isAddress(to)) {
+      alert("Invalid wallet address");
+      return;
+    }
+
+    const tx = await signer.sendTransaction({
+      to,
+      value: ethers.parseEther(amount),
+    });
+
+    alert("Transaction Sent!");
+
+    console.log(tx.hash);
+
+    await tx.wait();
+
+    alert("Transaction Confirmed!");
+
+    return tx.hash;
+  } catch (error) {
+    console.error(error);
+
+    alert(error.message);
+  }
+  }
+  
   useEffect(() => {
     const savedWallet =
       localStorage.getItem(
@@ -254,6 +287,7 @@ function App() {
             setShowPreview={setShowPreview}
             selectedNetwork={selectedNetwork}
             setBalance={setBalance}
+            onSendTransaction={sendTransaction}
             />
           )}
           
