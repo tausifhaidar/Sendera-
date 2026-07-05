@@ -26,9 +26,7 @@ function SendTab({
 
         <input
           value={recipient}
-          onChange={(e) =>
-            setRecipient(e.target.value)
-          }
+          onChange={(e) => setRecipient(e.target.value)}
           placeholder="0x..."
           style={{
             width: "100%",
@@ -54,9 +52,7 @@ function SendTab({
 
         <input
           value={sendAmount}
-          onChange={(e) =>
-            setSendAmount(e.target.value)
-          }
+          onChange={(e) => setSendAmount(e.target.value)}
           placeholder="0.00"
           type="number"
           style={{
@@ -74,9 +70,7 @@ function SendTab({
       <button
         onClick={() => {
           if (!recipient || !sendAmount) {
-            alert(
-              "Please enter recipient address and amount."
-            );
+            alert("Please enter recipient address and amount.");
             return;
           }
 
@@ -97,40 +91,34 @@ function SendTab({
         Preview Transaction
       </button>
 
-         {showPreview && (
-      <TransactionPreview
-        wallet={wallet}
-        network="Ethereum Sepolia"
-        address={recipient}
-        amount={sendAmount}
-        onCancel={() =>
-          setShowPreview(false)
-        }
-        onConfirm={async () => {
-    const hash =
-      await onSendTransaction(
-        recipient,
-        sendAmount
-      );
+      {showPreview && (
+        <TransactionPreview
+          wallet={wallet}
+          network="Ethereum Sepolia"
+          address={recipient}
+          amount={sendAmount}
+          onCancel={() => setShowPreview(false)}
+          onConfirm={async () => {
+            const hash = await onSendTransaction(
+              recipient,
+              sendAmount
+            );
 
-    if (hash) {
-      alert(
-        "Transaction Successful!\n\nHash:\n" +
-          hash
-      );
+            if (hash) {
+              alert(
+                "Transaction Successful!\n\nHash:\n" +
+                  hash
+              );
 
-      setShowPreview(false);
-
-      setRecipient("");
-
-      setSendAmount("");
-      }
-      />
-     )}
-
-   </div>
+              setShowPreview(false);
+              setRecipient("");
+              setSendAmount("");
+            }
+          }}
+        />
+      )}
+    </div>
   );
- }
+}
 
 export default SendTab;
-        
