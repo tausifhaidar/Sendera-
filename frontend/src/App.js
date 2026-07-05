@@ -282,6 +282,7 @@ function App() {
             setWallet={setWallet}
             setSeedPhrase={setSeedPhrase}
             setScreen={setScreen}
+            setTransactions={setTransactions}
           />
         )}
 
