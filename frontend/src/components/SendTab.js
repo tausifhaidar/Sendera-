@@ -106,8 +106,25 @@ function SendTab({
         onCancel={() =>
           setShowPreview(false)
         }
-        onConfirm={() =>
-          alert("Next Step: Real Transaction")
+        onConfirm={async () => {
+    const hash =
+      await onSendTransaction(
+        recipient,
+        sendAmount
+      );
+
+    if (hash) {
+      alert(
+        "Transaction Successful!\n\nHash:\n" +
+          hash
+      );
+
+      setShowPreview(false);
+
+      setRecipient("");
+
+      setSendAmount("");
+          
          }
        />
      )}
