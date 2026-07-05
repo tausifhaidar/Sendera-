@@ -8,6 +8,7 @@ function SendTab({
   setSendAmount,
   showPreview,
   setShowPreview,
+  onSendTransaction,
 }) {
   return (
     <div>
