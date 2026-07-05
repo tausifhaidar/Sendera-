@@ -124,9 +124,8 @@ function SendTab({
       setRecipient("");
 
       setSendAmount("");
-          
-         }
-       />
+      }
+      />
      )}
 
    </div>
@@ -134,3 +133,4 @@ function SendTab({
  }
 
 export default SendTab;
+        
