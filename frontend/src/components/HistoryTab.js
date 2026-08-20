@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 function HistoryTab({ transactions = [], selectedNetwork }) {
   const networkName =
     selectedNetwork === "baseSepolia"
@@ -19,13 +21,9 @@ function HistoryTab({ transactions = [], selectedNetwork }) {
 
   function formatAmount(value) {
     try {
-      return Number(ethers.utils.formatEther(value)).toFixed(4);
+      return Number(ethers.formatEther(value || "0")).toFixed(4);
     } catch {
-      try {
-        return (Number(value || 0) / 1e18).toFixed(4);
-      } catch {
-        return "0.0000";
-      }
+      return "0.0000";
     }
   }
 
@@ -36,7 +34,9 @@ function HistoryTab({ transactions = [], selectedNetwork }) {
 
       {transactions.length > 0 ? (
         transactions.map((tx) => {
-          const isReceived = String(tx.to || "").toLowerCase() !== String(tx.from || "").toLowerCase();
+          const isReceived =
+            String(tx.to || "").toLowerCase() !==
+            String(tx.from || "").toLowerCase();
           const date = tx.timeStamp
             ? new Date(Number(tx.timeStamp) * 1000).toLocaleString()
             : "Date unavailable";
@@ -72,13 +72,7 @@ function HistoryTab({ transactions = [], selectedNetwork }) {
               <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>
                 {isReceived ? "From" : "To"}
               </p>
-              <p
-                style={{
-                  fontSize: 12,
-                  wordBreak: "break-all",
-                  marginTop: 0,
-                }}
-              >
+              <p style={{ fontSize: 12, wordBreak: "break-all", marginTop: 0 }}>
                 {isReceived ? tx.from : tx.to}
               </p>
 
