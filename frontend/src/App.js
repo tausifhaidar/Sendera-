@@ -21,6 +21,7 @@ function App() {
   const [recipient, setRecipient] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [gasFee, setGasFee] = useState("");
 
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
@@ -53,8 +54,7 @@ function App() {
         "sendera_wallet",
         JSON.stringify({
           address: importedWallet.address,
-          privateKey:
-            importedWallet.privateKey,
+          privateKey: importedWallet.privateKey,
           phrase: importPhrase.trim(),
         })
       );
@@ -65,40 +65,93 @@ function App() {
       alert("Invalid Seed Phrase");
     }
   }
-  async function sendTransaction(to, amount) {
-  try {
-    const rpcUrl = NETWORKS[selectedNetwork].rpc;
 
-    const provider = new ethers.JsonRpcProvider(rpcUrl);
+  async function estimateGas(to, amount) {
+    try {
+      if (!wallet) return "";
 
-    const signer = wallet.connect(provider);
+      if (!ethers.isAddress(to)) {
+        alert("Invalid wallet address");
+        return "";
+      }
 
-    if (!ethers.isAddress(to)) {
-      alert("Invalid wallet address");
-      return;
+      const parsedAmount = ethers.parseEther(amount);
+      const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
+
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+
+      const gasLimit = await provider.estimateGas({
+        from: wallet.address,
+        to,
+        value: parsedAmount,
+      });
+
+      const feeData = await provider.getFeeData();
+      const gasPrice =
+        feeData.gasPrice ?? feeData.maxFeePerGas;
+
+      if (!gasPrice) {
+        throw new Error("Unable to fetch current gas price");
+      }
+
+      const estimatedFee = gasLimit * gasPrice;
+
+      return ethers.formatEther(estimatedFee);
+    } catch (error) {
+      console.error("Gas Estimation Error:", error);
+      alert("Gas Estimation Error: " + error.message);
+      return "";
+    }
+  }
+
+  async function handlePreviewTransaction(to, amount) {
+    setGasFee("");
+
+    const estimatedFee = await estimateGas(to, amount);
+
+    if (!estimatedFee) {
+      return false;
     }
 
-    const tx = await signer.sendTransaction({
-      to,
-      value: ethers.parseEther(amount),
-    });
-
-    alert("Transaction Sent!");
-
-    console.log(tx.hash);
-
-    await tx.wait();
-
-    alert("Transaction Confirmed!");
-
-    return tx.hash;
-  } catch (error) {
-    console.error(error);
-
-    alert(error.message);
+    setGasFee(estimatedFee);
+    setShowPreview(true);
+    return true;
   }
+
+  async function sendTransaction(to, amount) {
+    try {
+      const rpcUrl = NETWORKS[selectedNetwork].rpc;
+
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+
+      const signer = wallet.connect(provider);
+
+      if (!ethers.isAddress(to)) {
+        alert("Invalid wallet address");
+        return;
+      }
+
+      const tx = await signer.sendTransaction({
+        to,
+        value: ethers.parseEther(amount),
+      });
+
+      alert("Transaction Sent!");
+
+      console.log(tx.hash);
+
+      await tx.wait();
+
+      alert("Transaction Confirmed!");
+
+      return tx.hash;
+    } catch (error) {
+      console.error(error);
+
+      alert(error.message);
+    }
   }
-  
+
   useEffect(() => {
     const savedWallet =
       localStorage.getItem(
@@ -118,100 +171,100 @@ function App() {
 
       setWallet(restoredWallet);
       setSeedPhrase(
-  data.phrase || ""
-);
+        data.phrase || ""
+      );
       setScreen("dashboard");
     } catch {}
   }, []);
 
   useEffect(() => {
-  async function loadBalance() {
-    if (!wallet) return;
+    async function loadBalance() {
+      if (!wallet) return;
 
-    try {
-      const rpcUrl =
-        NETWORKS[selectedNetwork]?.rpc;
+      try {
+        const rpcUrl =
+          NETWORKS[selectedNetwork]?.rpc;
 
-      const provider =
-        new ethers.JsonRpcProvider(
-          rpcUrl
+        const provider =
+          new ethers.JsonRpcProvider(
+            rpcUrl
+          );
+
+        const balanceWei =
+          await provider.getBalance(
+            wallet.address
+          );
+
+        const balanceEth =
+          ethers.formatEther(
+            balanceWei
+          );
+
+        console.log(
+          "Network:",
+          selectedNetwork
         );
 
-      const balanceWei =
-        await provider.getBalance(
+        console.log(
+          "Address:",
           wallet.address
         );
 
-      const balanceEth =
-        ethers.formatEther(
-          balanceWei
+        console.log(
+          "Balance:",
+          balanceEth
         );
 
-      console.log(
-        "Network:",
-        selectedNetwork
-      );
+        setBalance(balanceEth);
+      } catch (error) {
+        console.error(error);
 
-      console.log(
-        "Address:",
-        wallet.address
-      );
-
-      console.log(
-        "Balance:",
-        balanceEth
-      );
-
-      setBalance(balanceEth);
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        "Balance Error: " +
-          error.message
-      );
-    }
-  }
-
-  loadBalance();
-}, [wallet, selectedNetwork]);
-  
-  useEffect(() => {
-  async function loadTransactions() {
-    if (!wallet) return;
-
-    try {
-      const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
-
-      const response = await fetch(
-  `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
-);
-
-      const data =
-        await response.json();
-
-      if (
-        data.status === "1"
-      ) {
-        setTransactions(
-          data.result
+        alert(
+          "Balance Error: " +
+            error.message
         );
       }
-    } catch (error) {
-      console.log(
-        "Transaction Error:",
-        error
-      );
     }
-  }
 
-  if (
-    selectedNetwork ===
-    "ethereumSepolia"
-  ) {
-    loadTransactions();
-  }
-}, [wallet, selectedNetwork]);
+    loadBalance();
+  }, [wallet, selectedNetwork]);
+
+  useEffect(() => {
+    async function loadTransactions() {
+      if (!wallet) return;
+
+      try {
+        const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
+
+        const response = await fetch(
+          `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
+        );
+
+        const data =
+          await response.json();
+
+        if (
+          data.status === "1"
+        ) {
+          setTransactions(
+            data.result
+          );
+        }
+      } catch (error) {
+        console.log(
+          "Transaction Error:",
+          error
+        );
+      }
+    }
+
+    if (
+      selectedNetwork ===
+      "ethereumSepolia"
+    ) {
+      loadTransactions();
+    }
+  }, [wallet, selectedNetwork]);
 
   if (screen === "backup") {
     return (
@@ -270,12 +323,12 @@ function App() {
       >
         {activeTab === "home" && (
           <HomeTab
-               wallet={wallet}
-              balance={balance}
-              selectedNetwork={selectedNetwork}
-              />
-              )}
-        
+            wallet={wallet}
+            balance={balance}
+            selectedNetwork={selectedNetwork}
+          />
+        )}
+
         {activeTab === "send" && (
           <SendTab
             wallet={wallet}
@@ -286,25 +339,24 @@ function App() {
             showPreview={showPreview}
             setShowPreview={setShowPreview}
             selectedNetwork={selectedNetwork}
+            gasFee={gasFee}
+            onPreviewTransaction={handlePreviewTransaction}
+            setGasFee={setGasFee}
             setBalance={setBalance}
             onSendTransaction={sendTransaction}
-            />
-          )}
-          
- 
-          
-        
+          />
+        )}
+
         {activeTab === "receive" && (
           <ReceiveTab wallet={wallet} />
         )}
-         
 
         {activeTab === "history" && (
           <HistoryTab
             wallet={wallet}
             selectedNetwork={selectedNetwork}
             transactions={transactions}
-          /> 
+          />
         )}
 
         {activeTab === "settings" && (
@@ -326,9 +378,9 @@ function App() {
         />
       </div>
     );
-       }
+  }
 
-return (
+  return (
     <div
       style={{
         minHeight: "100vh",
