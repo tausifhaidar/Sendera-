@@ -8,6 +8,7 @@ import ReceiveTab from "./components/ReceiveTab";
 import HistoryTab from "./components/HistoryTab";
 import SettingTab from "./components/SettingTab";
 import BottomNav from "./components/BottomNav";
+import TransactionSuccess from "./components/TransactionSuccess";
 
 function App() {
   const [screen, setScreen] = useState("welcome");
@@ -22,12 +23,12 @@ function App() {
   const [sendAmount, setSendAmount] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [gasFee, setGasFee] = useState("");
+  const [successTransaction, setSuccessTransaction] = useState(null);
 
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
 
-    const phrase =
-      newWallet.mnemonic?.phrase || "";
+    const phrase = newWallet.mnemonic?.phrase || "";
 
     localStorage.setItem(
       "sendera_wallet",
@@ -45,10 +46,7 @@ function App() {
 
   function importWallet() {
     try {
-      const importedWallet =
-        ethers.Wallet.fromPhrase(
-          importPhrase.trim()
-        );
+      const importedWallet = ethers.Wallet.fromPhrase(importPhrase.trim());
 
       localStorage.setItem(
         "sendera_wallet",
@@ -77,7 +75,6 @@ function App() {
 
       const parsedAmount = ethers.parseEther(amount);
       const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
-
       const provider = new ethers.JsonRpcProvider(rpcUrl);
 
       const gasLimit = await provider.estimateGas({
@@ -87,16 +84,13 @@ function App() {
       });
 
       const feeData = await provider.getFeeData();
-      const gasPrice =
-        feeData.gasPrice ?? feeData.maxFeePerGas;
+      const gasPrice = feeData.gasPrice ?? feeData.maxFeePerGas;
 
       if (!gasPrice) {
         throw new Error("Unable to fetch current gas price");
       }
 
-      const estimatedFee = gasLimit * gasPrice;
-
-      return ethers.formatEther(estimatedFee);
+      return ethers.formatEther(gasLimit * gasPrice);
     } catch (error) {
       console.error("Gas Estimation Error:", error);
       alert("Gas Estimation Error: " + error.message);
@@ -109,9 +103,7 @@ function App() {
 
     const estimatedFee = await estimateGas(to, amount);
 
-    if (!estimatedFee) {
-      return false;
-    }
+    if (!estimatedFee) return false;
 
     setGasFee(estimatedFee);
     setShowPreview(true);
@@ -121,9 +113,7 @@ function App() {
   async function sendTransaction(to, amount) {
     try {
       const rpcUrl = NETWORKS[selectedNetwork].rpc;
-
       const provider = new ethers.JsonRpcProvider(rpcUrl);
-
       const signer = wallet.connect(provider);
 
       if (!ethers.isAddress(to)) {
@@ -136,43 +126,27 @@ function App() {
         value: ethers.parseEther(amount),
       });
 
-      alert("Transaction Sent!");
-
-      console.log(tx.hash);
-
       await tx.wait();
-
-      alert("Transaction Confirmed!");
 
       return tx.hash;
     } catch (error) {
       console.error(error);
-
       alert(error.message);
+      return null;
     }
   }
 
   useEffect(() => {
-    const savedWallet =
-      localStorage.getItem(
-        "sendera_wallet"
-      );
+    const savedWallet = localStorage.getItem("sendera_wallet");
 
     if (!savedWallet) return;
 
     try {
-      const data =
-        JSON.parse(savedWallet);
-
-      const restoredWallet =
-        new ethers.Wallet(
-          data.privateKey
-        );
+      const data = JSON.parse(savedWallet);
+      const restoredWallet = new ethers.Wallet(data.privateKey);
 
       setWallet(restoredWallet);
-      setSeedPhrase(
-        data.phrase || ""
-      );
+      setSeedPhrase(data.phrase || "");
       setScreen("dashboard");
     } catch {}
   }, []);
@@ -182,47 +156,13 @@ function App() {
       if (!wallet) return;
 
       try {
-        const rpcUrl =
-          NETWORKS[selectedNetwork]?.rpc;
-
-        const provider =
-          new ethers.JsonRpcProvider(
-            rpcUrl
-          );
-
-        const balanceWei =
-          await provider.getBalance(
-            wallet.address
-          );
-
-        const balanceEth =
-          ethers.formatEther(
-            balanceWei
-          );
-
-        console.log(
-          "Network:",
-          selectedNetwork
-        );
-
-        console.log(
-          "Address:",
-          wallet.address
-        );
-
-        console.log(
-          "Balance:",
-          balanceEth
-        );
-
-        setBalance(balanceEth);
+        const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
+        const provider = new ethers.JsonRpcProvider(rpcUrl);
+        const balanceWei = await provider.getBalance(wallet.address);
+        setBalance(ethers.formatEther(balanceWei));
       } catch (error) {
         console.error(error);
-
-        alert(
-          "Balance Error: " +
-            error.message
-        );
+        alert("Balance Error: " + error.message);
       }
     }
 
@@ -235,33 +175,21 @@ function App() {
 
       try {
         const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
-
         const response = await fetch(
           `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
         );
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
-        if (
-          data.status === "1"
-        ) {
-          setTransactions(
-            data.result
-          );
+        if (data.status === "1") {
+          setTransactions(data.result);
         }
       } catch (error) {
-        console.log(
-          "Transaction Error:",
-          error
-        );
+        console.log("Transaction Error:", error);
       }
     }
 
-    if (
-      selectedNetwork ===
-      "ethereumSepolia"
-    ) {
+    if (selectedNetwork === "ethereumSepolia") {
       loadTransactions();
     }
   }, [wallet, selectedNetwork]);
@@ -277,10 +205,7 @@ function App() {
         }}
       >
         <h1>Backup Wallet</h1>
-
-        <p>
-          Save your recovery phrase.
-        </p>
+        <p>Save your recovery phrase.</p>
 
         <div
           style={{
@@ -295,9 +220,7 @@ function App() {
         </div>
 
         <button
-          onClick={() =>
-            setScreen("dashboard")
-          }
+          onClick={() => setScreen("dashboard")}
           style={{
             width: "100%",
             padding: 16,
@@ -342,14 +265,19 @@ function App() {
             gasFee={gasFee}
             onPreviewTransaction={handlePreviewTransaction}
             setGasFee={setGasFee}
-            setBalance={setBalance}
             onSendTransaction={sendTransaction}
+            onTransactionSuccess={(hash) => {
+              setSuccessTransaction({
+                hash,
+                amount: sendAmount,
+                address: recipient,
+                network: NETWORKS[selectedNetwork]?.name || selectedNetwork,
+              });
+            }}
           />
         )}
 
-        {activeTab === "receive" && (
-          <ReceiveTab wallet={wallet} />
-        )}
+        {activeTab === "receive" && <ReceiveTab wallet={wallet} />}
 
         {activeTab === "history" && (
           <HistoryTab
@@ -372,10 +300,20 @@ function App() {
           />
         )}
 
-        <BottomNav
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
+        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+
+        {successTransaction && (
+          <TransactionSuccess
+            amount={successTransaction.amount}
+            network={successTransaction.network}
+            address={successTransaction.address}
+            hash={successTransaction.hash}
+            onDone={() => {
+              setSuccessTransaction(null);
+              setActiveTab("home");
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -394,10 +332,7 @@ function App() {
       }}
     >
       <h1>Sendera</h1>
-
-      <p>
-        Your AI Crypto Assistant
-      </p>
+      <p>Your AI Crypto Assistant</p>
 
       <button
         onClick={createWallet}
@@ -413,11 +348,7 @@ function App() {
       <textarea
         placeholder="Paste Seed Phrase"
         value={importPhrase}
-        onChange={(e) =>
-          setImportPhrase(
-            e.target.value
-          )
-        }
+        onChange={(e) => setImportPhrase(e.target.value)}
         style={{
           width: 250,
           height: 100,
