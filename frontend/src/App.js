@@ -34,6 +34,16 @@ const CHAIN_IDS = {
   polygonAmoy: "80002",
 };
 
+function getStoredTransactions() {
+  try {
+    const saved = localStorage.getItem("sendera_transactions");
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function App() {
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
@@ -42,7 +52,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedNetwork, setSelectedNetwork] = useState("baseSepolia");
   const [balance, setBalance] = useState("0.0000");
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState(getStoredTransactions);
   const [recipient, setRecipient] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -201,23 +211,74 @@ function App() {
   async function refreshTransactions() {
     if (!wallet) return;
 
+    const local = getStoredTransactions().filter(
+      (tx) => !tx.network || tx.network === selectedNetwork
+    );
+
+    if (selectedNetwork !== "ethereumSepolia") {
+      setTransactions(local);
+      return;
+    }
+
     try {
-      const apiBase = process.env.REACT_APP_BACKEND_URL || "";
-      if (!apiBase) {
-        setTransactions([]);
-        return;
-      }
+      const apiBase = process.env.REACT_APP_BACKEND_URL;
+      if (!apiBase) throw new Error("Backend URL is not configured");
 
       const chainId = CHAIN_IDS[selectedNetwork];
-      const response = await fetch(`${apiBase}/api/transactions?address=${encodeURIComponent(wallet.address)}&chainid=${chainId}`);
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, "")}/api/transactions?address=${encodeURIComponent(wallet.address)}&chainid=${chainId}`
+      );
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || "History unavailable");
-      setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
+
+      const remote = Array.isArray(data.transactions)
+        ? data.transactions.map((tx) => ({ ...tx, network: selectedNetwork }))
+        : [];
+
+      const merged = [...remote, ...local].filter(
+        (tx, index, all) =>
+          tx.hash && all.findIndex((item) => item.hash === tx.hash) === index
+      );
+
+      setTransactions(merged);
     } catch (error) {
       console.log("Transaction History Error:", error.message);
-      setTransactions([]);
+      setTransactions(local);
     }
+  }
+
+  function handleTransactionSuccess(hash) {
+    const localTransaction = {
+      hash,
+      from: wallet?.address || "",
+      to: recipient,
+      value: ethers.parseEther(sendAmount || "0").toString(),
+      timeStamp: Math.floor(Date.now() / 1000).toString(),
+      txreceipt_status: "1",
+      isError: "0",
+      network: selectedNetwork,
+      confirmations: "1",
+      localOnly: true,
+    };
+
+    const stored = getStoredTransactions().filter((tx) => tx.hash !== hash);
+    localStorage.setItem(
+      "sendera_transactions",
+      JSON.stringify([localTransaction, ...stored].slice(0, 50))
+    );
+
+    setTransactions((previous) => [
+      localTransaction,
+      ...previous.filter((tx) => tx.hash !== hash),
+    ]);
+
+    setSuccessTransaction({
+      hash,
+      amount: sendAmount,
+      address: recipient,
+      network: NETWORKS[selectedNetwork]?.name || selectedNetwork,
+    });
   }
 
   useEffect(() => {
@@ -265,12 +326,12 @@ function App() {
   if (screen === "dashboard") return (
     <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20, paddingBottom: 100 }}>
       {activeTab === "home" && <HomeTab wallet={wallet} balance={balance} selectedNetwork={selectedNetwork} />}
-      {activeTab === "send" && <SendTab wallet={wallet} recipient={recipient} setRecipient={setRecipient} sendAmount={sendAmount} setSendAmount={setSendAmount} showPreview={showPreview} setShowPreview={setShowPreview} selectedNetwork={selectedNetwork} gasFee={gasFee} onPreviewTransaction={handlePreviewTransaction} setGasFee={setGasFee} onSendTransaction={sendTransaction} onTransactionSuccess={(hash) => setSuccessTransaction({ hash, amount: sendAmount, address: recipient, network: NETWORKS[selectedNetwork]?.name || selectedNetwork })} />}
+      {activeTab === "send" && <SendTab wallet={wallet} recipient={recipient} setRecipient={setRecipient} sendAmount={sendAmount} setSendAmount={setSendAmount} showPreview={showPreview} setShowPreview={setShowPreview} selectedNetwork={selectedNetwork} gasFee={gasFee} onPreviewTransaction={handlePreviewTransaction} setGasFee={setGasFee} onSendTransaction={sendTransaction} onTransactionSuccess={handleTransactionSuccess} />}
       {activeTab === "receive" && <ReceiveTab wallet={wallet} selectedNetwork={selectedNetwork} />}
-      {activeTab === "history" && <HistoryTab wallet={wallet} selectedNetwork={selectedNetwork} transactions={transactions} />}
+      {activeTab === "history" && <HistoryTab wallet={wallet} selectedNetwork={selectedNetwork} transactions={transactions} onRefresh={refreshTransactions} />}
       {activeTab === "settings" && <SettingTab wallet={wallet} seedPhrase={seedPhrase} selectedNetwork={selectedNetwork} setSelectedNetwork={setSelectedNetwork} setWallet={setWallet} setSeedPhrase={setSeedPhrase} setScreen={setScreen} setTransactions={setTransactions} />}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-      {successTransaction && <TransactionSuccess amount={successTransaction.amount} network={successTransaction.network} address={successTransaction.address} hash={successTransaction.hash} onDone={() => { setSuccessTransaction(null); setActiveTab("home"); }} />}
+      {successTransaction && <TransactionSuccess amount={successTransaction.amount} network={successTransaction.network} address={successTransaction.address} hash={successTransaction.hash} onDone={() => { setSuccessTransaction(null); setActiveTab("history"); refreshTransactions(); }} />}
     </div>
   );
 
