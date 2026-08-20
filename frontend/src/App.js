@@ -28,6 +28,12 @@ function getUserFriendlyError(error) {
   return "Transaction failed. Please check the details and try again.";
 }
 
+const CHAIN_IDS = {
+  baseSepolia: "84532",
+  ethereumSepolia: "11155111",
+  polygonAmoy: "80002",
+};
+
 function App() {
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
@@ -194,12 +200,18 @@ function App() {
 
   async function refreshTransactions() {
     if (!wallet) return;
-    if (selectedNetwork !== "ethereumSepolia") return setTransactions([]);
 
     try {
-      const apiBase = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
-      const response = await fetch(`${apiBase}/api/transactions?address=${encodeURIComponent(wallet.address)}`);
+      const apiBase = process.env.REACT_APP_BACKEND_URL || "";
+      if (!apiBase) {
+        setTransactions([]);
+        return;
+      }
+
+      const chainId = CHAIN_IDS[selectedNetwork];
+      const response = await fetch(`${apiBase}/api/transactions?address=${encodeURIComponent(wallet.address)}&chainid=${chainId}`);
       const data = await response.json();
+
       if (!response.ok) throw new Error(data.error || "History unavailable");
       setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
     } catch (error) {
