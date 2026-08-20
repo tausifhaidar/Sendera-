@@ -6,19 +6,15 @@ import SendTab from "./components/SendTab";
 import HomeTab from "./components/HomeTab";
 import ReceiveTab from "./components/ReceiveTab";
 import HistoryTab from "./components/HistoryTab";
+import TokenTab from "./components/TokenTab";
 import SettingTab from "./components/SettingTab";
 import BottomNav from "./components/BottomNav";
 import TransactionSuccess from "./components/TransactionSuccess";
-import {
-  encryptWallet,
-  decryptWallet,
-  isEncryptedWallet,
-} from "./components/walletSecurity";
+import { encryptWallet, decryptWallet, isEncryptedWallet } from "./components/walletSecurity";
 
 function getUserFriendlyError(error) {
   const message = String(error?.shortMessage || error?.reason || error?.message || "");
   const code = error?.code;
-
   if (code === "ACTION_REJECTED" || /user rejected|user denied|rejected/i.test(message)) return "Transaction cancelled by user.";
   if (/insufficient funds|insufficient balance|underfunded|not enough funds/i.test(message)) return "Insufficient balance to complete this transaction, including gas fees.";
   if (/invalid address|bad address/i.test(message)) return "Invalid recipient wallet address.";
@@ -28,20 +24,14 @@ function getUserFriendlyError(error) {
   return "Transaction failed. Please check the details and try again.";
 }
 
-const CHAIN_IDS = {
-  baseSepolia: "84532",
-  ethereumSepolia: "11155111",
-  polygonAmoy: "80002",
-};
+const CHAIN_IDS = { baseSepolia: "84532", ethereumSepolia: "11155111", polygonAmoy: "80002" };
 
 function getStoredTransactions() {
   try {
     const saved = localStorage.getItem("sendera_transactions");
     const parsed = saved ? JSON.parse(saved) : [];
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 function App() {
@@ -69,14 +59,19 @@ function App() {
     localStorage.setItem("sendera_wallet", payload);
   }
 
+  async function changePin(oldPin, newPin) {
+    const savedWallet = localStorage.getItem("sendera_wallet");
+    if (!savedWallet || !isEncryptedWallet(savedWallet)) throw new Error("Encrypted wallet not found.");
+    const data = await decryptWallet(savedWallet, oldPin);
+    const nextPayload = await encryptWallet(data, newPin);
+    localStorage.setItem("sendera_wallet", nextPayload);
+  }
+
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
     const phrase = newWallet.mnemonic?.phrase || "";
     setPendingWallet({ wallet: newWallet, phrase });
-    setSeedPhrase(phrase);
-    setPin("");
-    setConfirmPin("");
-    setScreen("backup");
+    setSeedPhrase(phrase); setPin(""); setConfirmPin(""); setScreen("backup");
   }
 
   function importWallet() {
@@ -85,56 +80,36 @@ function App() {
       if (!phrase) return alert("Please enter your recovery phrase.");
       const importedWallet = ethers.Wallet.fromPhrase(phrase);
       setPendingWallet({ wallet: importedWallet, phrase });
-      setSeedPhrase("");
-      setPin("");
-      setConfirmPin("");
-      setScreen("setPin");
-    } catch {
-      alert("Invalid recovery phrase. Please check it and try again.");
-    }
+      setSeedPhrase(""); setPin(""); setConfirmPin(""); setScreen("setPin");
+    } catch { alert("Invalid recovery phrase. Please check it and try again."); }
   }
 
   async function finishWalletSetup() {
     if (!pendingWallet?.wallet) return;
     if (pin.length < 6) return alert("PIN must contain at least 6 characters.");
     if (pin !== confirmPin) return alert("PINs do not match.");
-
     try {
       setIsSavingWallet(true);
       await saveEncryptedWallet(pendingWallet.wallet, pendingWallet.phrase, pin);
-      setWallet(pendingWallet.wallet);
-      setSeedPhrase(pendingWallet.phrase);
-      setPendingWallet(null);
-      setPin("");
-      setConfirmPin("");
-      setScreen("dashboard");
+      setWallet(pendingWallet.wallet); setSeedPhrase(pendingWallet.phrase); setPendingWallet(null);
+      setPin(""); setConfirmPin(""); setScreen("dashboard");
     } catch (error) {
-      console.error(error);
-      alert("Unable to secure wallet on this device.");
-    } finally {
-      setIsSavingWallet(false);
-    }
+      console.error(error); alert("Unable to secure wallet on this device.");
+    } finally { setIsSavingWallet(false); }
   }
 
   async function unlockWallet() {
     if (!unlockPin) return alert("Enter your wallet PIN.");
-
     try {
       const savedWallet = localStorage.getItem("sendera_wallet");
       if (!savedWallet || !isEncryptedWallet(savedWallet)) {
         alert("Wallet storage is not encrypted. Please restore your wallet and create a new secure PIN.");
         return;
       }
-
       const data = await decryptWallet(savedWallet, unlockPin);
       const restoredWallet = new ethers.Wallet(data.privateKey);
-      setWallet(restoredWallet);
-      setSeedPhrase(data.phrase || "");
-      setUnlockPin("");
-      setScreen("dashboard");
-    } catch {
-      alert("Incorrect PIN or corrupted wallet data.");
-    }
+      setWallet(restoredWallet); setSeedPhrase(data.phrase || ""); setUnlockPin(""); setScreen("dashboard");
+    } catch { alert("Incorrect PIN or corrupted wallet data."); }
   }
 
   async function estimateGas(to, amount) {
@@ -155,9 +130,7 @@ function App() {
       if (currentBalance < parsedAmount + estimatedFee) throw new Error("Insufficient funds");
       return ethers.formatEther(estimatedFee);
     } catch (error) {
-      console.error("Gas Estimation Error:", error);
-      alert(getUserFriendlyError(error));
-      return "";
+      console.error("Gas Estimation Error:", error); alert(getUserFriendlyError(error)); return "";
     }
   }
 
@@ -165,9 +138,7 @@ function App() {
     setGasFee("");
     const estimatedFee = await estimateGas(to, amount);
     if (!estimatedFee) return false;
-    setGasFee(estimatedFee);
-    setShowPreview(true);
-    return true;
+    setGasFee(estimatedFee); setShowPreview(true); return true;
   }
 
   async function sendTransaction(to, amount) {
@@ -191,60 +162,33 @@ function App() {
       await tx.wait();
       return tx.hash;
     } catch (error) {
-      console.error("Send Transaction Error:", error);
-      alert(getUserFriendlyError(error));
-      return null;
+      console.error("Send Transaction Error:", error); alert(getUserFriendlyError(error)); return null;
     }
   }
 
   async function refreshBalance() {
     if (!wallet) return;
     try {
-      const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const provider = new ethers.JsonRpcProvider(NETWORKS[selectedNetwork]?.rpc);
       setBalance(ethers.formatEther(await provider.getBalance(wallet.address)));
-    } catch (error) {
-      console.error("Balance Error:", error);
-    }
+    } catch (error) { console.error("Balance Error:", error); }
   }
 
   async function refreshTransactions() {
     if (!wallet) return;
-
-    const local = getStoredTransactions().filter(
-      (tx) => !tx.network || tx.network === selectedNetwork
-    );
-
-    if (selectedNetwork !== "ethereumSepolia") {
-      setTransactions(local);
-      return;
-    }
-
+    const local = getStoredTransactions().filter((tx) => !tx.network || tx.network === selectedNetwork);
     try {
       const apiBase = process.env.REACT_APP_BACKEND_URL;
       if (!apiBase) throw new Error("Backend URL is not configured");
-
       const chainId = CHAIN_IDS[selectedNetwork];
-      const response = await fetch(
-        `${apiBase.replace(/\/$/, "")}/api/transactions?address=${encodeURIComponent(wallet.address)}&chainid=${chainId}`
-      );
+      const response = await fetch(`${apiBase.replace(/\/$/, "")}/api/transactions?address=${encodeURIComponent(wallet.address)}&chainid=${chainId}`);
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.error || "History unavailable");
-
-      const remote = Array.isArray(data.transactions)
-        ? data.transactions.map((tx) => ({ ...tx, network: selectedNetwork }))
-        : [];
-
-      const merged = [...remote, ...local].filter(
-        (tx, index, all) =>
-          tx.hash && all.findIndex((item) => item.hash === tx.hash) === index
-      );
-
+      const remote = Array.isArray(data.transactions) ? data.transactions.map((tx) => ({ ...tx, network: selectedNetwork })) : [];
+      const merged = [...remote, ...local].filter((tx, index, all) => tx.hash && all.findIndex((item) => item.hash === tx.hash) === index);
       setTransactions(merged);
     } catch (error) {
-      console.log("Transaction History Error:", error.message);
-      setTransactions(local);
+      console.log("Transaction History Error:", error.message); setTransactions(local);
     }
   }
 
@@ -261,44 +205,39 @@ function App() {
       confirmations: "1",
       localOnly: true,
     };
-
     const stored = getStoredTransactions().filter((tx) => tx.hash !== hash);
-    localStorage.setItem(
-      "sendera_transactions",
-      JSON.stringify([localTransaction, ...stored].slice(0, 50))
-    );
-
-    setTransactions((previous) => [
-      localTransaction,
-      ...previous.filter((tx) => tx.hash !== hash),
-    ]);
-
-    setSuccessTransaction({
-      hash,
-      amount: sendAmount,
-      address: recipient,
-      network: NETWORKS[selectedNetwork]?.name || selectedNetwork,
-    });
+    localStorage.setItem("sendera_transactions", JSON.stringify([localTransaction, ...stored].slice(0, 50)));
+    setTransactions((previous) => [localTransaction, ...previous.filter((tx) => tx.hash !== hash)]);
+    setSuccessTransaction({ hash, amount: sendAmount, address: recipient, network: NETWORKS[selectedNetwork]?.name || selectedNetwork });
   }
 
   useEffect(() => {
     const savedWallet = localStorage.getItem("sendera_wallet");
     if (!savedWallet) return;
-    if (isEncryptedWallet(savedWallet)) {
-      setScreen("locked");
-      return;
-    }
-    localStorage.removeItem("sendera_wallet");
-    setScreen("welcome");
+    if (isEncryptedWallet(savedWallet)) { setScreen("locked"); return; }
+    localStorage.removeItem("sendera_wallet"); setScreen("welcome");
   }, []);
 
   useEffect(() => { refreshBalance(); }, [wallet, selectedNetwork]);
   useEffect(() => { refreshTransactions(); }, [wallet, selectedNetwork]);
 
+  useEffect(() => {
+    if (!wallet || screen !== "dashboard") return;
+    const TIMEOUT = 15 * 60 * 1000;
+    let timer;
+    const lock = () => {
+      setWallet(null); setSeedPhrase(""); setShowPreview(false); setScreen("locked");
+    };
+    const reset = () => { clearTimeout(timer); timer = setTimeout(lock, TIMEOUT); };
+    const events = ["click", "touchstart", "keydown", "mousemove", "scroll"];
+    events.forEach((event) => window.addEventListener(event, reset, { passive: true }));
+    reset();
+    return () => { clearTimeout(timer); events.forEach((event) => window.removeEventListener(event, reset)); };
+  }, [wallet, screen]);
+
   if (screen === "backup") return (
     <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20 }}>
-      <h1>Backup Wallet</h1>
-      <p>Save your recovery phrase somewhere safe. Never share it.</p>
+      <h1>Backup Wallet</h1><p>Save your recovery phrase somewhere safe. Never share it.</p>
       <div style={{ background: "#0f172a", padding: 20, borderRadius: 12, marginTop: 20, wordBreak: "break-word" }}>{seedPhrase}</div>
       <button onClick={() => setScreen("setPin")} style={{ width: "100%", padding: 16, marginTop: 20 }}>I Saved It</button>
     </div>
@@ -306,8 +245,7 @@ function App() {
 
   if (screen === "setPin") return (
     <div style={{ minHeight: "100vh", background: "#020617", color: "white", display: "flex", flexDirection: "column", justifyContent: "center", padding: 20 }}>
-      <h1>Secure Your Wallet</h1>
-      <p style={{ color: "#94a3b8" }}>Create a PIN of at least 6 characters. This PIN encrypts your wallet on this device.</p>
+      <h1>Secure Your Wallet</h1><p style={{ color: "#94a3b8" }}>Create a PIN of at least 6 characters. This PIN encrypts your wallet on this device.</p>
       <input type="password" inputMode="numeric" autoComplete="new-password" placeholder="Create PIN" value={pin} onChange={(e) => setPin(e.target.value)} style={{ width: "100%", padding: 14, boxSizing: "border-box", marginTop: 15 }} />
       <input type="password" inputMode="numeric" autoComplete="new-password" placeholder="Confirm PIN" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} style={{ width: "100%", padding: 14, boxSizing: "border-box", marginTop: 12 }} />
       <button onClick={finishWalletSetup} disabled={isSavingWallet} style={{ width: "100%", padding: 16, marginTop: 20 }}>{isSavingWallet ? "Securing Wallet..." : "Secure Wallet"}</button>
@@ -316,32 +254,32 @@ function App() {
 
   if (screen === "locked") return (
     <div style={{ minHeight: "100vh", background: "#020617", color: "white", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 20 }}>
-      <h1>Sendera Locked</h1>
-      <p style={{ color: "#94a3b8" }}>Enter your PIN to unlock your wallet.</p>
+      <h1>Sendera Locked</h1><p style={{ color: "#94a3b8" }}>Enter your PIN to unlock your wallet.</p>
       <input type="password" inputMode="numeric" autoComplete="current-password" placeholder="Wallet PIN" value={unlockPin} onChange={(e) => setUnlockPin(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") unlockWallet(); }} style={{ width: 250, padding: 14, boxSizing: "border-box", marginTop: 15 }} />
       <button onClick={unlockWallet} style={{ width: 250, padding: 16, marginTop: 15 }}>Unlock Wallet</button>
     </div>
   );
 
   if (screen === "dashboard") return (
-    <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20, paddingBottom: 100 }}>
+    <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20, paddingBottom: 90, fontFamily: "Inter, system-ui, sans-serif" }}>
       {activeTab === "home" && <HomeTab wallet={wallet} balance={balance} selectedNetwork={selectedNetwork} />}
       {activeTab === "send" && <SendTab wallet={wallet} recipient={recipient} setRecipient={setRecipient} sendAmount={sendAmount} setSendAmount={setSendAmount} showPreview={showPreview} setShowPreview={setShowPreview} selectedNetwork={selectedNetwork} gasFee={gasFee} onPreviewTransaction={handlePreviewTransaction} setGasFee={setGasFee} onSendTransaction={sendTransaction} onTransactionSuccess={handleTransactionSuccess} />}
       {activeTab === "receive" && <ReceiveTab wallet={wallet} selectedNetwork={selectedNetwork} />}
+      {activeTab === "tokens" && <TokenTab wallet={wallet} selectedNetwork={selectedNetwork} />}
       {activeTab === "history" && <HistoryTab wallet={wallet} selectedNetwork={selectedNetwork} transactions={transactions} onRefresh={refreshTransactions} />}
-      {activeTab === "settings" && <SettingTab wallet={wallet} seedPhrase={seedPhrase} selectedNetwork={selectedNetwork} setSelectedNetwork={setSelectedNetwork} setWallet={setWallet} setSeedPhrase={setSeedPhrase} setScreen={setScreen} setTransactions={setTransactions} />}
+      {activeTab === "settings" && <SettingTab wallet={wallet} seedPhrase={seedPhrase} selectedNetwork={selectedNetwork} setSelectedNetwork={setSelectedNetwork} setWallet={setWallet} setSeedPhrase={setSeedPhrase} setScreen={setScreen} onChangePin={changePin} />}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
       {successTransaction && <TransactionSuccess amount={successTransaction.amount} network={successTransaction.network} address={successTransaction.address} hash={successTransaction.hash} onDone={() => { setSuccessTransaction(null); setActiveTab("history"); refreshTransactions(); }} />}
     </div>
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "#020617", color: "white", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 20 }}>
-      <h1>Sendera</h1>
-      <p>Your AI Crypto Assistant</p>
-      <button onClick={createWallet} style={{ width: 250, padding: 16, marginBottom: 15 }}>Create Wallet</button>
-      <textarea placeholder="Paste Seed Phrase" value={importPhrase} onChange={(e) => setImportPhrase(e.target.value)} style={{ width: 250, height: 100, marginBottom: 10 }} />
-      <button onClick={importWallet} style={{ width: 250, padding: 16 }}>Import Wallet</button>
+    <div style={{ minHeight: "100vh", background: "#020617", color: "white", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 20, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <h1 style={{ fontSize: 40, marginBottom: 8 }}>Sendera</h1>
+      <p style={{ color: "#94a3b8", marginBottom: 24 }}>Your AI Crypto Assistant</p>
+      <button onClick={createWallet} style={{ width: 250, padding: 16, marginBottom: 15, border: "none", borderRadius: 12, background: "#22c55e", color: "white", fontWeight: "bold" }}>Create Wallet</button>
+      <textarea placeholder="Paste Seed Phrase" value={importPhrase} onChange={(e) => setImportPhrase(e.target.value)} style={{ width: 250, height: 100, marginBottom: 10, boxSizing: "border-box", padding: 12, borderRadius: 12 }} />
+      <button onClick={importWallet} style={{ width: 250, padding: 16, border: "none", borderRadius: 12, background: "#1e293b", color: "white", fontWeight: "bold" }}>Import Wallet</button>
     </div>
   );
 }
