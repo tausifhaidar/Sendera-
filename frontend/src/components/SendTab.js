@@ -8,8 +8,21 @@ function SendTab({
   setSendAmount,
   showPreview,
   setShowPreview,
+  selectedNetwork,
+  gasFee,
+  onPreviewTransaction,
+  setGasFee,
   onSendTransaction,
 }) {
+  const networkName =
+    selectedNetwork === "baseSepolia"
+      ? "Base Sepolia"
+      : selectedNetwork === "ethereumSepolia"
+      ? "Ethereum Sepolia"
+      : selectedNetwork === "polygonAmoy"
+      ? "Polygon Amoy"
+      : selectedNetwork;
+
   return (
     <div>
       <h2>Send Crypto</h2>
@@ -26,7 +39,9 @@ function SendTab({
 
         <input
           value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
+          onChange={(e) =>
+            setRecipient(e.target.value)
+          }
           placeholder="0x..."
           style={{
             width: "100%",
@@ -52,7 +67,9 @@ function SendTab({
 
         <input
           value={sendAmount}
-          onChange={(e) => setSendAmount(e.target.value)}
+          onChange={(e) =>
+            setSendAmount(e.target.value)
+          }
           placeholder="0.00"
           type="number"
           style={{
@@ -68,13 +85,18 @@ function SendTab({
       </div>
 
       <button
-        onClick={() => {
+        onClick={async () => {
           if (!recipient || !sendAmount) {
-            alert("Please enter recipient address and amount.");
+            alert(
+              "Please enter recipient address and amount."
+            );
             return;
           }
 
-          setShowPreview(true);
+          await onPreviewTransaction(
+            recipient,
+            sendAmount
+          );
         }}
         style={{
           width: "100%",
@@ -94,10 +116,14 @@ function SendTab({
       {showPreview && (
         <TransactionPreview
           wallet={wallet}
-          network="Ethereum Sepolia"
+          network={networkName}
           address={recipient}
           amount={sendAmount}
-          onCancel={() => setShowPreview(false)}
+          gasFee={gasFee}
+          onCancel={() => {
+            setShowPreview(false);
+            setGasFee("");
+          }}
           onConfirm={async () => {
             const hash = await onSendTransaction(
               recipient,
@@ -113,6 +139,7 @@ function SendTab({
               setShowPreview(false);
               setRecipient("");
               setSendAmount("");
+              setGasFee("");
             }
           }}
         />
