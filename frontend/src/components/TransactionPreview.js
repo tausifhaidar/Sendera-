@@ -3,6 +3,7 @@ function TransactionPreview({
   network,
   address,
   amount,
+  gasFee,
   onCancel,
   onConfirm,
 }) {
@@ -54,9 +55,8 @@ function TransactionPreview({
       </p>
 
       <p>
-        <strong>Estimated Gas:</strong>
-        {" "}
-        Loading...
+        <strong>Estimated Gas:</strong>{" "}
+        {gasFee ? `${gasFee} ETH` : "Calculating..."}
       </p>
 
       <div
