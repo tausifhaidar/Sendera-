@@ -13,6 +13,7 @@ function SendTab({
   onPreviewTransaction,
   setGasFee,
   onSendTransaction,
+  onTransactionSuccess,
 }) {
   const networkName =
     selectedNetwork === "baseSepolia"
@@ -39,9 +40,7 @@ function SendTab({
 
         <input
           value={recipient}
-          onChange={(e) =>
-            setRecipient(e.target.value)
-          }
+          onChange={(e) => setRecipient(e.target.value)}
           placeholder="0x..."
           style={{
             width: "100%",
@@ -67,9 +66,7 @@ function SendTab({
 
         <input
           value={sendAmount}
-          onChange={(e) =>
-            setSendAmount(e.target.value)
-          }
+          onChange={(e) => setSendAmount(e.target.value)}
           placeholder="0.00"
           type="number"
           style={{
@@ -87,16 +84,11 @@ function SendTab({
       <button
         onClick={async () => {
           if (!recipient || !sendAmount) {
-            alert(
-              "Please enter recipient address and amount."
-            );
+            alert("Please enter recipient address and amount.");
             return;
           }
 
-          await onPreviewTransaction(
-            recipient,
-            sendAmount
-          );
+          await onPreviewTransaction(recipient, sendAmount);
         }}
         style={{
           width: "100%",
@@ -125,17 +117,10 @@ function SendTab({
             setGasFee("");
           }}
           onConfirm={async () => {
-            const hash = await onSendTransaction(
-              recipient,
-              sendAmount
-            );
+            const hash = await onSendTransaction(recipient, sendAmount);
 
             if (hash) {
-              alert(
-                "Transaction Successful!\n\nHash:\n" +
-                  hash
-              );
-
+              onTransactionSuccess?.(hash);
               setShowPreview(false);
               setRecipient("");
               setSendAmount("");
