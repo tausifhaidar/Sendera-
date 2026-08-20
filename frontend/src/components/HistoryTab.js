@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-function HistoryTab({ transactions = [], selectedNetwork }) {
+function HistoryTab({ transactions = [], selectedNetwork, wallet }) {
   const networkName =
     selectedNetwork === "baseSepolia"
       ? "Base Sepolia"
@@ -27,16 +27,46 @@ function HistoryTab({ transactions = [], selectedNetwork }) {
     }
   }
 
+  function formatGasFee(tx) {
+    try {
+      if (!tx.gasUsed || !tx.gasPrice) return "0.000000 ETH";
+      const fee = BigInt(tx.gasUsed) * BigInt(tx.gasPrice);
+      return `${Number(ethers.formatEther(fee)).toFixed(6)} ETH`;
+    } catch {
+      return "Unavailable";
+    }
+  }
+
+  function getStatus(tx) {
+    if (tx.isError === "1" || tx.txreceipt_status === "0") return "Failed";
+    return "Confirmed";
+  }
+
   return (
     <div>
       <h2>Transaction History</h2>
       <p style={{ color: "#94a3b8", marginTop: 5 }}>{networkName}</p>
 
-      {transactions.length > 0 ? (
+      {selectedNetwork !== "ethereumSepolia" ? (
+        <div
+          style={{
+            background: "#0f172a",
+            padding: 20,
+            borderRadius: 16,
+            marginTop: 20,
+            textAlign: "center",
+            color: "#94a3b8",
+          }}
+        >
+          History for {networkName} will be available after explorer support is connected.
+        </div>
+      ) : transactions.length > 0 ? (
         transactions.map((tx) => {
-          const isReceived =
-            String(tx.to || "").toLowerCase() !==
-            String(tx.from || "").toLowerCase();
+          const myAddress = String(wallet?.address || "").toLowerCase();
+          const from = String(tx.from || "").toLowerCase();
+          const to = String(tx.to || "").toLowerCase();
+          const isReceived = to === myAddress && from !== myAddress;
+          const status = getStatus(tx);
           const date = tx.timeStamp
             ? new Date(Number(tx.timeStamp) * 1000).toLocaleString()
             : "Date unavailable";
@@ -65,7 +95,7 @@ function HistoryTab({ transactions = [], selectedNetwork }) {
                 <strong>{formatAmount(tx.value)} ETH</strong>
               </div>
 
-              <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 6 }}>
+              <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 12 }}>
                 {date}
               </p>
 
@@ -79,8 +109,26 @@ function HistoryTab({ transactions = [], selectedNetwork }) {
               <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>
                 Status
               </p>
-              <p style={{ marginTop: 0 }}>
-                {tx.isError === "1" ? "Failed" : "Confirmed"}
+              <p
+                style={{
+                  marginTop: 0,
+                  color: status === "Failed" ? "#ef4444" : "#22c55e",
+                  fontWeight: "bold",
+                }}
+              >
+                {status}
+              </p>
+
+              <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>
+                Gas Fee
+              </p>
+              <p style={{ marginTop: 0 }}>{formatGasFee(tx)}</p>
+
+              <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>
+                Transaction Hash
+              </p>
+              <p style={{ fontSize: 12, wordBreak: "break-all", marginTop: 0 }}>
+                {tx.hash}
               </p>
 
               {tx.hash && explorerBase && (
