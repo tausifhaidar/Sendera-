@@ -18,59 +18,93 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, service: "sendera-backend" });
 });
 
+async function explorerRequest(params) {
+  if (!ETHERSCAN_API_KEY) throw new Error("Transaction history service is not configured");
+  const url = new URL("https://api.etherscan.io/v2/api");
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, String(value)));
+  url.searchParams.set("apikey", ETHERSCAN_API_KEY);
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!response.ok) throw new Error("Explorer service unavailable");
+  return data;
+}
+
+function validateAddress(address) {
+  return /^0x[a-fA-F0-9]{40}$/.test(String(address || ""));
+}
+
+function validateChain(chainid) {
+  return Boolean(SUPPORTED_CHAINS[String(chainid)]);
+}
+
 app.get("/api/transactions", async (req, res) => {
   const { address, chainid = "11155111" } = req.query;
 
-  if (!/^0x[a-fA-F0-9]{40}$/.test(String(address || ""))) {
-    return res.status(400).json({ error: "Invalid wallet address" });
-  }
-
-  if (!SUPPORTED_CHAINS[String(chainid)]) {
-    return res.status(400).json({ error: "Unsupported network" });
-  }
-
-  if (!ETHERSCAN_API_KEY) {
-    return res.status(503).json({ error: "Transaction history service is not configured" });
-  }
+  if (!validateAddress(address)) return res.status(400).json({ error: "Invalid wallet address" });
+  if (!validateChain(chainid)) return res.status(400).json({ error: "Unsupported network" });
 
   try {
-    const url = new URL("https://api.etherscan.io/v2/api");
-    url.searchParams.set("chainid", String(chainid));
-    url.searchParams.set("module", "account");
-    url.searchParams.set("action", "txlist");
-    url.searchParams.set("address", address);
-    url.searchParams.set("startblock", "0");
-    url.searchParams.set("endblock", "99999999");
-    url.searchParams.set("page", "1");
-    url.searchParams.set("offset", "25");
-    url.searchParams.set("sort", "desc");
-    url.searchParams.set("apikey", ETHERSCAN_API_KEY);
+    const data = await explorerRequest({
+      chainid,
+      module: "account",
+      action: "txlist",
+      address,
+      startblock: "0",
+      endblock: "99999999",
+      page: "1",
+      offset: "50",
+      sort: "desc",
+    });
 
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(502).json({ error: "Explorer service unavailable" });
-    }
-
-    if (data.status === "1") {
-      return res.json({
-        network: SUPPORTED_CHAINS[String(chainid)],
-        transactions: data.result,
-      });
+    if (data.status === "1" && Array.isArray(data.result)) {
+      return res.json({ network: SUPPORTED_CHAINS[String(chainid)], transactions: data.result });
     }
 
     if (Array.isArray(data.result) && data.result.length === 0) {
-      return res.json({
-        network: SUPPORTED_CHAINS[String(chainid)],
-        transactions: [],
-      });
+      return res.json({ network: SUPPORTED_CHAINS[String(chainid)], transactions: [] });
     }
 
     return res.status(502).json({ error: "Unable to load transaction history" });
   } catch (error) {
     console.error("Transaction history error:", error.message);
-    return res.status(502).json({ error: "Unable to load transaction history" });
+    return res.status(502).json({ error: error.message || "Unable to load transaction history" });
+  }
+});
+
+app.get("/api/token-transactions", async (req, res) => {
+  const { address, contractaddress, chainid = "11155111" } = req.query;
+
+  if (!validateAddress(address) || !validateAddress(contractaddress)) {
+    return res.status(400).json({ error: "Invalid wallet or token contract address" });
+  }
+  if (!validateChain(chainid)) return res.status(400).json({ error: "Unsupported network" });
+
+  try {
+    const data = await explorerRequest({
+      chainid,
+      module: "account",
+      action: "tokentx",
+      address,
+      contractaddress,
+      startblock: "0",
+      endblock: "99999999",
+      page: "1",
+      offset: "50",
+      sort: "desc",
+    });
+
+    if (data.status === "1" && Array.isArray(data.result)) {
+      return res.json({ network: SUPPORTED_CHAINS[String(chainid)], transactions: data.result });
+    }
+
+    if (Array.isArray(data.result) && data.result.length === 0) {
+      return res.json({ network: SUPPORTED_CHAINS[String(chainid)], transactions: [] });
+    }
+
+    return res.status(502).json({ error: "Unable to load token history" });
+  } catch (error) {
+    console.error("Token history error:", error.message);
+    return res.status(502).json({ error: error.message || "Unable to load token history" });
   }
 });
 
