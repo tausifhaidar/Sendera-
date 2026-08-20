@@ -10,6 +10,37 @@ import SettingTab from "./components/SettingTab";
 import BottomNav from "./components/BottomNav";
 import TransactionSuccess from "./components/TransactionSuccess";
 
+function getUserFriendlyError(error) {
+  const message = String(error?.shortMessage || error?.reason || error?.message || "");
+  const code = error?.code;
+
+  if (code === "ACTION_REJECTED" || /user rejected|user denied|rejected/i.test(message)) {
+    return "Transaction cancelled by user.";
+  }
+
+  if (/insufficient funds|insufficient balance|underfunded|not enough funds/i.test(message)) {
+    return "Insufficient balance to complete this transaction, including gas fees.";
+  }
+
+  if (/invalid address|bad address/i.test(message)) {
+    return "Invalid recipient wallet address.";
+  }
+
+  if (/could not coalesce|invalid BigNumberish|invalid value|underflow|overflow/i.test(message)) {
+    return "Please enter a valid amount.";
+  }
+
+  if (/network|rpc|failed to fetch|timeout|server error|could not detect/i.test(message)) {
+    return "Network connection failed. Please try again.";
+  }
+
+  if (/gas|fee data|estimate/i.test(message)) {
+    return "Unable to estimate gas right now. Please check the network and try again.";
+  }
+
+  return "Transaction failed. Please check the details and try again.";
+}
+
 function App() {
   const [screen, setScreen] = useState("welcome");
   const [wallet, setWallet] = useState(null);
@@ -45,21 +76,27 @@ function App() {
 
   function importWallet() {
     try {
-      const importedWallet = ethers.Wallet.fromPhrase(importPhrase.trim());
+      const phrase = importPhrase.trim();
+      if (!phrase) {
+        alert("Please enter your recovery phrase.");
+        return;
+      }
+
+      const importedWallet = ethers.Wallet.fromPhrase(phrase);
 
       localStorage.setItem(
         "sendera_wallet",
         JSON.stringify({
           address: importedWallet.address,
           privateKey: importedWallet.privateKey,
-          phrase: importPhrase.trim(),
+          phrase,
         })
       );
 
       setWallet(importedWallet);
       setScreen("dashboard");
     } catch {
-      alert("Invalid Seed Phrase");
+      alert("Invalid recovery phrase. Please check it and try again.");
     }
   }
 
@@ -68,14 +105,18 @@ function App() {
       if (!wallet) return "";
 
       if (!ethers.isAddress(to)) {
-        alert("Invalid wallet address");
-        return "";
+        throw new Error("Invalid address");
+      }
+
+      if (!amount || Number(amount) <= 0) {
+        throw new Error("Invalid amount");
       }
 
       const parsedAmount = ethers.parseEther(amount);
       const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      if (!rpcUrl) throw new Error("Network unavailable");
 
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
       const gasLimit = await provider.estimateGas({
         from: wallet.address,
         to,
@@ -84,15 +125,19 @@ function App() {
 
       const feeData = await provider.getFeeData();
       const gasPrice = feeData.gasPrice ?? feeData.maxFeePerGas;
+      if (!gasPrice) throw new Error("Unable to fetch gas price");
 
-      if (!gasPrice) {
-        throw new Error("Unable to fetch current gas price");
+      const estimatedFee = gasLimit * gasPrice;
+      const currentBalance = await provider.getBalance(wallet.address);
+
+      if (currentBalance < parsedAmount + estimatedFee) {
+        throw new Error("Insufficient funds");
       }
 
-      return ethers.formatEther(gasLimit * gasPrice);
+      return ethers.formatEther(estimatedFee);
     } catch (error) {
       console.error("Gas Estimation Error:", error);
-      alert("Gas Estimation Error: " + error.message);
+      alert(getUserFriendlyError(error));
       return "";
     }
   }
@@ -110,25 +155,44 @@ function App() {
 
   async function sendTransaction(to, amount) {
     try {
-      const rpcUrl = NETWORKS[selectedNetwork].rpc;
+      if (!wallet) throw new Error("Wallet unavailable");
+      if (!ethers.isAddress(to)) throw new Error("Invalid address");
+      if (!amount || Number(amount) <= 0) throw new Error("Invalid amount");
+
+      const parsedAmount = ethers.parseEther(amount);
+      const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
+      if (!rpcUrl) throw new Error("Network unavailable");
+
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       const signer = wallet.connect(provider);
+      const currentBalance = await provider.getBalance(wallet.address);
 
-      if (!ethers.isAddress(to)) {
-        alert("Invalid wallet address");
-        return null;
+      const feeData = await provider.getFeeData();
+      const gasPrice = feeData.gasPrice ?? feeData.maxFeePerGas;
+      const gasLimit = await provider.estimateGas({
+        from: wallet.address,
+        to,
+        value: parsedAmount,
+      });
+
+      if (!gasPrice) throw new Error("Unable to fetch gas price");
+
+      const estimatedFee = gasLimit * gasPrice;
+      if (currentBalance < parsedAmount + estimatedFee) {
+        throw new Error("Insufficient funds");
       }
 
       const tx = await signer.sendTransaction({
         to,
-        value: ethers.parseEther(amount),
+        value: parsedAmount,
+        gasLimit,
       });
 
       await tx.wait();
       return tx.hash;
     } catch (error) {
-      console.error(error);
-      alert(error.message);
+      console.error("Send Transaction Error:", error);
+      alert(getUserFriendlyError(error));
       return null;
     }
   }
@@ -196,37 +260,15 @@ function App() {
 
   if (screen === "backup") {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#020617",
-          color: "white",
-          padding: 20,
-        }}
-      >
+      <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20 }}>
         <h1>Backup Wallet</h1>
         <p>Save your recovery phrase.</p>
 
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 12,
-            marginTop: 20,
-            wordBreak: "break-word",
-          }}
-        >
+        <div style={{ background: "#0f172a", padding: 20, borderRadius: 12, marginTop: 20, wordBreak: "break-word" }}>
           {seedPhrase}
         </div>
 
-        <button
-          onClick={() => setScreen("dashboard")}
-          style={{
-            width: "100%",
-            padding: 16,
-            marginTop: 20,
-          }}
-        >
+        <button onClick={() => setScreen("dashboard")} style={{ width: "100%", padding: 16, marginTop: 20 }}>
           I Saved It
         </button>
       </div>
@@ -235,22 +277,8 @@ function App() {
 
   if (screen === "dashboard") {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#020617",
-          color: "white",
-          padding: 20,
-          paddingBottom: 100,
-        }}
-      >
-        {activeTab === "home" && (
-          <HomeTab
-            wallet={wallet}
-            balance={balance}
-            selectedNetwork={selectedNetwork}
-          />
-        )}
+      <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20, paddingBottom: 100 }}>
+        {activeTab === "home" && <HomeTab wallet={wallet} balance={balance} selectedNetwork={selectedNetwork} />}
 
         {activeTab === "send" && (
           <SendTab
@@ -277,20 +305,9 @@ function App() {
           />
         )}
 
-        {activeTab === "receive" && (
-          <ReceiveTab
-            wallet={wallet}
-            selectedNetwork={selectedNetwork}
-          />
-        )}
+        {activeTab === "receive" && <ReceiveTab wallet={wallet} selectedNetwork={selectedNetwork} />}
 
-        {activeTab === "history" && (
-          <HistoryTab
-            wallet={wallet}
-            selectedNetwork={selectedNetwork}
-            transactions={transactions}
-          />
-        )}
+        {activeTab === "history" && <HistoryTab wallet={wallet} selectedNetwork={selectedNetwork} transactions={transactions} />}
 
         {activeTab === "settings" && (
           <SettingTab
@@ -324,29 +341,11 @@ function App() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#020617",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-      }}
-    >
+    <div style={{ minHeight: "100vh", background: "#020617", color: "white", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 20 }}>
       <h1>Sendera</h1>
       <p>Your AI Crypto Assistant</p>
 
-      <button
-        onClick={createWallet}
-        style={{
-          width: 250,
-          padding: 16,
-          marginBottom: 15,
-        }}
-      >
+      <button onClick={createWallet} style={{ width: 250, padding: 16, marginBottom: 15 }}>
         Create Wallet
       </button>
 
@@ -354,20 +353,10 @@ function App() {
         placeholder="Paste Seed Phrase"
         value={importPhrase}
         onChange={(e) => setImportPhrase(e.target.value)}
-        style={{
-          width: 250,
-          height: 100,
-          marginBottom: 10,
-        }}
+        style={{ width: 250, height: 100, marginBottom: 10 }}
       />
 
-      <button
-        onClick={importWallet}
-        style={{
-          width: 250,
-          padding: 16,
-        }}
-      >
+      <button onClick={importWallet} style={{ width: 250, padding: 16 }}>
         Import Wallet
       </button>
     </div>
