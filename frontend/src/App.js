@@ -99,7 +99,6 @@ function App() {
 
   async function handlePreviewTransaction(to, amount) {
     setGasFee("");
-
     const estimatedFee = await estimateGas(to, amount);
 
     if (!estimatedFee) return false;
@@ -107,38 +106,6 @@ function App() {
     setGasFee(estimatedFee);
     setShowPreview(true);
     return true;
-  }
-
-  async function refreshBalance() {
-    if (!wallet) return;
-
-    try {
-      const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
-      const balanceWei = await provider.getBalance(wallet.address);
-      setBalance(ethers.formatEther(balanceWei));
-    } catch (error) {
-      console.error("Balance Refresh Error:", error);
-    }
-  }
-
-  async function refreshTransactions() {
-    if (!wallet || selectedNetwork !== "ethereumSepolia") return;
-
-    try {
-      const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
-      const response = await fetch(
-        `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
-      );
-
-      const data = await response.json();
-
-      if (data.status === "1") {
-        setTransactions(data.result);
-      }
-    } catch (error) {
-      console.error("Transaction Refresh Error:", error);
-    }
   }
 
   async function sendTransaction(to, amount) {
@@ -158,15 +125,50 @@ function App() {
       });
 
       await tx.wait();
-
-      await refreshBalance();
-      await refreshTransactions();
-
       return tx.hash;
     } catch (error) {
       console.error(error);
       alert(error.message);
       return null;
+    }
+  }
+
+  async function refreshBalance() {
+    if (!wallet) return;
+
+    try {
+      const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const balanceWei = await provider.getBalance(wallet.address);
+      setBalance(ethers.formatEther(balanceWei));
+    } catch (error) {
+      console.error("Balance Error:", error);
+    }
+  }
+
+  async function refreshTransactions() {
+    if (!wallet) return;
+
+    if (selectedNetwork !== "ethereumSepolia") {
+      setTransactions([]);
+      return;
+    }
+
+    try {
+      const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
+      const response = await fetch(
+        `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
+      );
+
+      const data = await response.json();
+
+      if (data.status === "1") {
+        setTransactions(data.result);
+      } else if (data.result?.length === 0) {
+        setTransactions([]);
+      }
+    } catch (error) {
+      console.log("Transaction Error:", error);
     }
   }
 
@@ -275,7 +277,12 @@ function App() {
           />
         )}
 
-        {activeTab === "receive" && <ReceiveTab wallet={wallet} />}
+        {activeTab === "receive" && (
+          <ReceiveTab
+            wallet={wallet}
+            selectedNetwork={selectedNetwork}
+          />
+        )}
 
         {activeTab === "history" && (
           <HistoryTab
