@@ -43,19 +43,27 @@ function SettingTab({
   }
 
   function lockWallet() {
+    const confirmed = window.confirm(
+      "Lock Sendera? You will need to unlock the wallet before using it again."
+    );
+
+    if (!confirmed) return;
+
+    sessionStorage.setItem("sendera_locked", "1");
     setWallet(null);
     setSeedPhrase("");
-    setScreen("welcome");
+    setScreen("locked");
   }
 
   function logoutWallet() {
     const confirmed = window.confirm(
-      "This will remove this wallet from this device. Make sure you have your recovery phrase before continuing."
+      "This will permanently remove this wallet from this device. Make sure you have your recovery phrase before continuing."
     );
 
     if (!confirmed) return;
 
     localStorage.removeItem("sendera_wallet");
+    sessionStorage.removeItem("sendera_locked");
     setWallet(null);
     setSeedPhrase("");
     setScreen("welcome");
@@ -65,125 +73,35 @@ function SettingTab({
     <div>
       <h2>Settings</h2>
 
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 16,
-          marginTop: 20,
-        }}
-      >
-        <p style={{ color: "#94a3b8", marginBottom: 8 }}>
-          Wallet Address
-        </p>
-
-        <p
-          style={{
-            wordBreak: "break-all",
-            margin: 0,
-          }}
-        >
-          {wallet?.address || "No Wallet"}
-        </p>
-
-        <p
-          style={{
-            color: "#22c55e",
-            marginBottom: 0,
-          }}
-        >
-          {networkName}
-        </p>
+      <div style={{ background: "#0f172a", padding: 20, borderRadius: 16, marginTop: 20 }}>
+        <p style={{ color: "#94a3b8", marginBottom: 8 }}>Wallet Address</p>
+        <p style={{ wordBreak: "break-all", margin: 0 }}>{wallet?.address || "No Wallet"}</p>
+        <p style={{ color: "#22c55e", marginBottom: 0 }}>{networkName}</p>
       </div>
 
-      <NetworkSelector
-        selectedNetwork={selectedNetwork}
-        setSelectedNetwork={setSelectedNetwork}
-      />
+      <NetworkSelector selectedNetwork={selectedNetwork} setSelectedNetwork={setSelectedNetwork} />
 
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 16,
-          marginTop: 20,
-        }}
-      >
+      <div style={{ background: "#0f172a", padding: 20, borderRadius: 16, marginTop: 20 }}>
         <p style={{ color: "#94a3b8", marginBottom: 8 }}>Security</p>
         <p style={{ margin: 0 }}>Self-Custody Wallet</p>
-        <p
-          style={{
-            color: "#94a3b8",
-            fontSize: 13,
-            lineHeight: 1.5,
-          }}
-        >
-          Your recovery phrase controls access to this wallet. Never share it
-          with anyone.
+        <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.5 }}>
+          Your recovery phrase controls access to this wallet. Never share it with anyone.
         </p>
       </div>
 
-      <button
-        onClick={copyAddress}
-        style={{
-          width: "100%",
-          padding: 14,
-          border: "none",
-          borderRadius: 12,
-          background: "#2563eb",
-          color: "white",
-          marginTop: 20,
-          fontWeight: "bold",
-        }}
-      >
+      <button onClick={copyAddress} style={{ width: "100%", padding: 14, border: "none", borderRadius: 12, background: "#2563eb", color: "white", marginTop: 20, fontWeight: "bold" }}>
         Copy Address
       </button>
 
-      <button
-        onClick={showRecoveryPhrase}
-        style={{
-          width: "100%",
-          padding: 14,
-          border: "none",
-          borderRadius: 12,
-          background: "#f59e0b",
-          color: "white",
-          marginTop: 15,
-          fontWeight: "bold",
-        }}
-      >
+      <button onClick={showRecoveryPhrase} style={{ width: "100%", padding: 14, border: "none", borderRadius: 12, background: "#f59e0b", color: "white", marginTop: 15, fontWeight: "bold" }}>
         View Recovery Phrase
       </button>
 
-      <button
-        onClick={lockWallet}
-        style={{
-          width: "100%",
-          padding: 14,
-          border: "none",
-          borderRadius: 12,
-          background: "#475569",
-          color: "white",
-          marginTop: 15,
-          fontWeight: "bold",
-        }}
-      >
+      <button onClick={lockWallet} style={{ width: "100%", padding: 14, border: "none", borderRadius: 12, background: "#475569", color: "white", marginTop: 15, fontWeight: "bold" }}>
         Lock Wallet
       </button>
 
-      <button
-        onClick={logoutWallet}
-        style={{
-          width: "100%",
-          padding: 14,
-          border: "none",
-          borderRadius: 12,
-          background: "#ef4444",
-          color: "white",
-          marginTop: 15,
-          fontWeight: "bold",
-        }}
-      >
+      <button onClick={logoutWallet} style={{ width: "100%", padding: 14, border: "none", borderRadius: 12, background: "#ef4444", color: "white", marginTop: 15, fontWeight: "bold" }}>
         Remove Wallet
       </button>
     </div>
