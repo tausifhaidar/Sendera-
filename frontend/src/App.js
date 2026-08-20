@@ -27,7 +27,6 @@ function App() {
 
   function createWallet() {
     const newWallet = ethers.Wallet.createRandom();
-
     const phrase = newWallet.mnemonic?.phrase || "";
 
     localStorage.setItem(
@@ -110,6 +109,38 @@ function App() {
     return true;
   }
 
+  async function refreshBalance() {
+    if (!wallet) return;
+
+    try {
+      const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const balanceWei = await provider.getBalance(wallet.address);
+      setBalance(ethers.formatEther(balanceWei));
+    } catch (error) {
+      console.error("Balance Refresh Error:", error);
+    }
+  }
+
+  async function refreshTransactions() {
+    if (!wallet || selectedNetwork !== "ethereumSepolia") return;
+
+    try {
+      const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
+      const response = await fetch(
+        `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
+      );
+
+      const data = await response.json();
+
+      if (data.status === "1") {
+        setTransactions(data.result);
+      }
+    } catch (error) {
+      console.error("Transaction Refresh Error:", error);
+    }
+  }
+
   async function sendTransaction(to, amount) {
     try {
       const rpcUrl = NETWORKS[selectedNetwork].rpc;
@@ -118,7 +149,7 @@ function App() {
 
       if (!ethers.isAddress(to)) {
         alert("Invalid wallet address");
-        return;
+        return null;
       }
 
       const tx = await signer.sendTransaction({
@@ -127,6 +158,9 @@ function App() {
       });
 
       await tx.wait();
+
+      await refreshBalance();
+      await refreshTransactions();
 
       return tx.hash;
     } catch (error) {
@@ -138,7 +172,6 @@ function App() {
 
   useEffect(() => {
     const savedWallet = localStorage.getItem("sendera_wallet");
-
     if (!savedWallet) return;
 
     try {
@@ -152,46 +185,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    async function loadBalance() {
-      if (!wallet) return;
-
-      try {
-        const rpcUrl = NETWORKS[selectedNetwork]?.rpc;
-        const provider = new ethers.JsonRpcProvider(rpcUrl);
-        const balanceWei = await provider.getBalance(wallet.address);
-        setBalance(ethers.formatEther(balanceWei));
-      } catch (error) {
-        console.error(error);
-        alert("Balance Error: " + error.message);
-      }
-    }
-
-    loadBalance();
+    refreshBalance();
   }, [wallet, selectedNetwork]);
 
   useEffect(() => {
-    async function loadTransactions() {
-      if (!wallet) return;
-
-      try {
-        const API_KEY = "21PH9R17JIRPKGF2VZDYVT3UJXGSQ43KEE";
-        const response = await fetch(
-          `https://api.etherscan.io/v2/api?chainid=11155111&module=account&action=txlist&address=${wallet.address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${API_KEY}`
-        );
-
-        const data = await response.json();
-
-        if (data.status === "1") {
-          setTransactions(data.result);
-        }
-      } catch (error) {
-        console.log("Transaction Error:", error);
-      }
-    }
-
-    if (selectedNetwork === "ethereumSepolia") {
-      loadTransactions();
-    }
+    refreshTransactions();
   }, [wallet, selectedNetwork]);
 
   if (screen === "backup") {
