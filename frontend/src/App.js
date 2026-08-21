@@ -262,7 +262,7 @@ function App() {
 
   if (screen === "dashboard") return (
     <div style={{ minHeight: "100vh", background: "#020617", color: "white", padding: 20, paddingBottom: 90, fontFamily: "Inter, system-ui, sans-serif" }}>
-      {activeTab === "home" && <HomeTab wallet={wallet} balance={balance} selectedNetwork={selectedNetwork} />}
+      {activeTab === "home" && <HomeTab wallet={wallet} balance={balance} selectedNetwork={selectedNetwork} setActiveTab={setActiveTab} />}
       {activeTab === "send" && <SendTab wallet={wallet} recipient={recipient} setRecipient={setRecipient} sendAmount={sendAmount} setSendAmount={setSendAmount} showPreview={showPreview} setShowPreview={setShowPreview} selectedNetwork={selectedNetwork} gasFee={gasFee} onPreviewTransaction={handlePreviewTransaction} setGasFee={setGasFee} onSendTransaction={sendTransaction} onTransactionSuccess={handleTransactionSuccess} />}
       {activeTab === "receive" && <ReceiveTab wallet={wallet} selectedNetwork={selectedNetwork} />}
       {activeTab === "tokens" && <TokenTab wallet={wallet} selectedNetwork={selectedNetwork} />}
