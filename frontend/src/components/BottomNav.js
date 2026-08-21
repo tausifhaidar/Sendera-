@@ -1,21 +1,59 @@
 function BottomNav({ activeTab, setActiveTab }) {
   const items = [
-    ["home", "Home"],
-    ["send", "Send"],
-    ["receive", "Receive"],
-    ["tokens", "Tokens"],
-    ["history", "History"],
-    ["settings", "Settings"],
+    { key: "home", icon: "⌂", label: "Home" },
+    { key: "send", icon: "↑", label: "Send" },
+    { key: "receive", icon: "↓", label: "Receive" },
+    { key: "tokens", icon: "◈", label: "Tokens" },
+    { key: "history", icon: "◷", label: "Activity" },
+    { key: "settings", icon: "⚙", label: "Settings" },
   ];
 
   return (
-    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20, background: "rgba(15,23,42,.97)", display: "flex", overflowX: "auto", padding: "10px 6px", borderTop: "1px solid #334155", backdropFilter: "blur(10px)" }}>
-      {items.map(([id, label]) => (
-        <button key={id} onClick={() => setActiveTab(id)} style={{ flex: "0 0 auto", minWidth: 64, padding: "8px 10px", background: "none", border: "none", color: activeTab === id ? "#22c55e" : "#e2e8f0", fontWeight: activeTab === id ? "bold" : "normal", fontSize: 11, cursor: "pointer" }}>
-          {label}
-        </button>
-      ))}
-    </div>
+    <nav
+      style={{
+        position: "fixed",
+        bottom: 10,
+        left: 10,
+        right: 10,
+        zIndex: 50,
+        background: "rgba(10,17,31,.94)",
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        border: "1px solid #243047",
+        borderRadius: 22,
+        display: "flex",
+        justifyContent: "space-around",
+        padding: "8px 4px",
+        boxShadow: "0 14px 35px rgba(0,0,0,.35)",
+      }}
+    >
+      {items.map((item) => {
+        const active = activeTab === item.key;
+        return (
+          <button
+            key={item.key}
+            onClick={() => setActiveTab(item.key)}
+            aria-label={item.label}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              border: 0,
+              background: active ? "#17233a" : "transparent",
+              color: active ? "#60a5fa" : "#7f8da3",
+              borderRadius: 15,
+              padding: "7px 2px 6px",
+              cursor: "pointer",
+              transition: "all .18s ease",
+            }}
+          >
+            <div style={{ fontSize: 18, lineHeight: 1 }}>{item.icon}</div>
+            <div style={{ fontSize: 9, marginTop: 5, fontWeight: active ? 700 : 500 }}>
+              {item.label}
+            </div>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
