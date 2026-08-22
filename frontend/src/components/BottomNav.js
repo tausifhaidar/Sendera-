@@ -12,19 +12,19 @@ function BottomNav({ activeTab, setActiveTab }) {
     <nav
       style={{
         position: "fixed",
-        bottom: 10,
+        bottom: 12,
         left: 10,
         right: 10,
         zIndex: 50,
-        background: "rgba(10,17,31,.94)",
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
-        border: "1px solid #243047",
-        borderRadius: 22,
+        background: "linear-gradient(180deg, rgba(7,15,39,.92), rgba(5,11,29,.97))",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(110,91,210,.35)",
+        borderRadius: 24,
         display: "flex",
         justifyContent: "space-around",
-        padding: "8px 4px",
-        boxShadow: "0 14px 35px rgba(0,0,0,.35)",
+        padding: "8px 5px",
+        boxShadow: "0 18px 50px rgba(0,0,0,.45), 0 0 35px rgba(79,70,229,.10)",
       }}
     >
       {items.map((item) => {
@@ -37,19 +37,17 @@ function BottomNav({ activeTab, setActiveTab }) {
             style={{
               flex: 1,
               minWidth: 0,
-              border: 0,
-              background: active ? "#17233a" : "transparent",
-              color: active ? "#60a5fa" : "#7f8da3",
-              borderRadius: 15,
-              padding: "7px 2px 6px",
+              border: active ? "1px solid rgba(139,92,246,.35)" : "1px solid transparent",
+              background: active ? "linear-gradient(180deg, rgba(124,58,237,.26), rgba(37,99,235,.10))" : "transparent",
+              color: active ? "#f3f0ff" : "#8390aa",
+              borderRadius: 17,
+              padding: "8px 2px 7px",
               cursor: "pointer",
-              transition: "all .18s ease",
+              boxShadow: active ? "0 0 24px rgba(124,58,237,.18)" : "none",
             }}
           >
             <div style={{ fontSize: 18, lineHeight: 1 }}>{item.icon}</div>
-            <div style={{ fontSize: 9, marginTop: 5, fontWeight: active ? 700 : 500 }}>
-              {item.label}
-            </div>
+            <div style={{ fontSize: 9, marginTop: 5, fontWeight: active ? 800 : 500 }}>{item.label}</div>
           </button>
         );
       })}
