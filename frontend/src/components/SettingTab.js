@@ -1,7 +1,6 @@
 import { useState } from "react";
-import NetworkSelector from "./NetworkSelector";
 
-function SettingTab({ wallet, seedPhrase, selectedNetwork, setSelectedNetwork, setWallet, setSeedPhrase, setScreen, onChangePin }) {
+function SettingTab({ wallet, seedPhrase, selectedNetwork, setWallet, setSeedPhrase, setScreen, onChangePin }) {
   const [showPinForm, setShowPinForm] = useState(false);
   const [oldPin, setOldPin] = useState("");
   const [newPin, setNewPin] = useState("");
@@ -58,11 +57,7 @@ function SettingTab({ wallet, seedPhrase, selectedNetwork, setSelectedNetwork, s
           <div style={{ minWidth: 0 }}><div style={{ fontWeight: 800 }}>Sendera Wallet</div><div style={{ color: "#7e8ca9", fontSize: 12, wordBreak: "break-all", marginTop: 3 }}>{wallet?.address || "No Wallet"}</div></div>
         </div>
         <div style={{ marginTop: 14, display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: "rgba(34,197,94,.1)", color: "#4ade80", fontSize: 11 }}>{networkName}</div>
-      </section>
-
-      <section style={{ ...card, padding: 18, marginTop: 14 }}>
-        <div style={{ fontWeight: 800, marginBottom: 10 }}>Network</div>
-        <NetworkSelector selectedNetwork={selectedNetwork} setSelectedNetwork={setSelectedNetwork} />
+        <div style={{ color: "#687896", fontSize: 11, marginTop: 8 }}>Select network from the Home screen.</div>
       </section>
 
       <section style={{ ...card, padding: 18, marginTop: 14 }}>
