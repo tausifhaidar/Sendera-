@@ -43,8 +43,9 @@ function HistoryTab({ transactions = [], selectedNetwork, wallet, onRefresh }) {
 
   function formatGasFee(tx) {
     try {
-      if (tx.gasUsed && tx.gasPrice) return `${Number(ethers.formatEther(BigInt(tx.gasUsed) * BigInt(tx.gasPrice))).toFixed(6)} ${selectedNetwork === "polygonAmoy" ? "POL" : "ETH"}`;
-      if (resolvedGasFees[tx.hash]) return `${Number(resolvedGasFees[tx.hash]).toFixed(6)} ${selectedNetwork === "polygonAmoy" ? "POL" : "ETH"}`;
+      const unit = selectedNetwork === "polygonAmoy" ? "POL" : "ETH";
+      if (tx.gasUsed && tx.gasPrice) return `${Number(ethers.formatEther(BigInt(tx.gasUsed) * BigInt(tx.gasPrice))).toFixed(6)} ${unit}`;
+      if (resolvedGasFees[tx.hash]) return `${Number(resolvedGasFees[tx.hash]).toFixed(6)} ${unit}`;
       return "Loading...";
     } catch { return "Unavailable"; }
   }
@@ -54,14 +55,17 @@ function HistoryTab({ transactions = [], selectedNetwork, wallet, onRefresh }) {
     return tx.confirmations && Number(tx.confirmations) === 0 ? "Pending" : "Confirmed";
   }
 
+  const pill = (background, color) => ({ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 9px", borderRadius: 999, background, color, fontSize: 11, fontWeight: 800 });
+
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+    <div style={{ maxWidth: 620, margin: "0 auto", paddingBottom: 30 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 16 }}>
         <div>
-          <h2 style={{ marginBottom: 4 }}>Transaction History</h2>
-          <p style={{ color: "#94a3b8", marginTop: 0 }}>{networkName}</p>
+          <div style={{ color: "#8d9abb", fontSize: 12 }}>Your activity</div>
+          <h2 style={{ margin: "4px 0 0", fontSize: 28 }}>Transaction History</h2>
+          <p style={{ color: "#8d9abb", margin: "6px 0 0", fontSize: 12 }}>{networkName}</p>
         </div>
-        <button onClick={onRefresh} style={{ border: "none", borderRadius: 10, padding: "9px 12px", background: "#1e293b", color: "white", fontWeight: "bold" }}>Refresh</button>
+        <button onClick={onRefresh} style={{ border: "1px solid #2c3d69", borderRadius: 13, padding: "10px 13px", background: "#111d3a", color: "white", fontWeight: 700 }}>↻ Refresh</button>
       </div>
 
       {transactions.length > 0 ? transactions.map((tx) => {
@@ -72,34 +76,37 @@ function HistoryTab({ transactions = [], selectedNetwork, wallet, onRefresh }) {
         const status = getStatus(tx);
         const date = tx.timeStamp ? new Date(Number(tx.timeStamp) * 1000).toLocaleString() : "Date unavailable";
         const isOpen = expanded === tx.hash;
+        const statusStyle = status === "Failed" ? pill("rgba(239,68,68,.12)", "#f87171") : status === "Pending" ? pill("rgba(245,158,11,.12)", "#fbbf24") : pill("rgba(34,197,94,.12)", "#4ade80");
 
         return (
-          <div key={tx.hash} style={{ background: "#0f172a", padding: 18, borderRadius: 16, marginTop: 14, border: "1px solid #172033" }}>
+          <div key={tx.hash} style={{ background: "rgba(13,21,52,.86)", border: "1px solid rgba(91,74,170,.25)", padding: 17, borderRadius: 22, marginTop: 13, boxShadow: "0 15px 40px rgba(0,0,0,.15)" }}>
             <button onClick={() => setExpanded(isOpen ? null : tx.hash)} style={{ width: "100%", background: "none", border: "none", color: "white", padding: 0, textAlign: "left", cursor: "pointer" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                <strong style={{ color: isReceived ? "#22c55e" : "#60a5fa" }}>{isReceived ? "↓ Received" : "↑ Sent"}</strong>
-                <strong>{formatAmount(tx.value)} {selectedNetwork === "polygonAmoy" ? "POL" : "ETH"}</strong>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, display: "grid", placeItems: "center", background: isReceived ? "rgba(34,197,94,.14)" : "rgba(124,58,237,.16)", color: isReceived ? "#4ade80" : "#c4b5fd", fontSize: 19 }}>{isReceived ? "↓" : "↑"}</div>
+                  <div><strong>{isReceived ? "Received" : "Sent"}</strong><div style={{ color: "#7584a2", fontSize: 11, marginTop: 3 }}>{date}</div></div>
+                </div>
+                <div style={{ textAlign: "right" }}><strong style={{ fontSize: 14 }}>{isReceived ? "+" : "-"}{formatAmount(tx.value)} {selectedNetwork === "polygonAmoy" ? "POL" : "ETH"}</strong><div style={{ marginTop: 5 }}>{statusStyle}</div></div>
               </div>
-              <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 0 }}>{date} • {status}</p>
             </button>
 
             {isOpen && (
-              <div style={{ marginTop: 14 }}>
-                <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>{isReceived ? "From" : "To"}</p>
-                <p style={{ fontSize: 12, wordBreak: "break-all", marginTop: 0 }}>{isReceived ? tx.from : tx.to}</p>
-                <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>Status</p>
-                <p style={{ marginTop: 0, color: status === "Failed" ? "#ef4444" : status === "Pending" ? "#f59e0b" : "#22c55e", fontWeight: "bold" }}>{status}</p>
-                <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>Gas Fee</p>
-                <p style={{ marginTop: 0 }}>{formatGasFee(tx)}</p>
-                <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>Transaction Hash</p>
-                <p style={{ fontSize: 12, wordBreak: "break-all", marginTop: 0 }}>{tx.hash}</p>
-                {tx.hash && explorerBase && <a href={`${explorerBase}${tx.hash}`} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", padding: 11, marginTop: 14, borderRadius: 10, background: "#1e293b", color: "white", textDecoration: "none", fontWeight: "bold" }}>View on Explorer</a>}
+              <div style={{ marginTop: 15, paddingTop: 14, borderTop: "1px solid #223257" }}>
+                <div style={{ color: "#7e8cab", fontSize: 11 }}>{isReceived ? "From" : "To"}</div>
+                <div style={{ marginTop: 5, fontSize: 12, wordBreak: "break-all" }}>{isReceived ? tx.from : tx.to}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 13 }}>
+                  <div style={{ background: "#09132f", padding: 12, borderRadius: 14, border: "1px solid #21345e" }}><div style={{ color: "#7584a2", fontSize: 11 }}>Gas fee</div><div style={{ marginTop: 4, fontWeight: 700 }}>{formatGasFee(tx)}</div></div>
+                  <div style={{ background: "#09132f", padding: 12, borderRadius: 14, border: "1px solid #21345e" }}><div style={{ color: "#7584a2", fontSize: 11 }}>Status</div><div style={{ marginTop: 4, fontWeight: 700 }}>{status}</div></div>
+                </div>
+                <div style={{ color: "#7584a2", fontSize: 11, marginTop: 13 }}>Transaction hash</div>
+                <div style={{ fontSize: 11, wordBreak: "break-all", marginTop: 5, color: "#c9d3e9" }}>{tx.hash}</div>
+                {tx.hash && explorerBase && <a href={`${explorerBase}${tx.hash}`} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", padding: 12, marginTop: 14, borderRadius: 14, background: "linear-gradient(135deg,#7c3aed,#2563eb)", color: "white", textDecoration: "none", fontWeight: 800 }}>View on Explorer →</a>}
               </div>
             )}
           </div>
         );
       }) : (
-        <div style={{ background: "#0f172a", padding: 20, borderRadius: 16, marginTop: 20, textAlign: "center", color: "#94a3b8" }}>No Transactions</div>
+        <div style={{ background: "rgba(13,21,52,.84)", border: "1px solid #26345b", padding: 30, borderRadius: 22, marginTop: 18, textAlign: "center", color: "#8b98b5" }}><div style={{ fontSize: 28, marginBottom: 8 }}>◎</div><div style={{ fontWeight: 700, color: "#d9e1f2" }}>No transactions yet</div><div style={{ fontSize: 12, marginTop: 5 }}>Your completed activity will appear here.</div></div>
       )}
     </div>
   );
