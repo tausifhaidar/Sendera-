@@ -11,99 +11,62 @@ function ReceiveTab({ wallet, selectedNetwork }) {
       : selectedNetwork;
 
   const address = wallet?.address || "";
+  const shortAddress = address ? `${address.slice(0, 10)}...${address.slice(-8)}` : "No wallet";
 
   async function copyAddress() {
     if (!address) return;
-
     try {
       await navigator.clipboard.writeText(address);
       alert("Address Copied");
-    } catch {
-      alert("Unable to copy address");
-    }
+    } catch { alert("Unable to copy address"); }
   }
 
   async function shareAddress() {
     if (!address) return;
-
     const shareText = `My Sendera wallet address (${networkName}):\n${address}`;
-
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Sendera Wallet Address",
-          text: shareText,
-        });
-      } catch {}
+      try { await navigator.share({ title: "Sendera Wallet Address", text: shareText }); } catch {}
       return;
     }
-
     try {
       await navigator.clipboard.writeText(address);
       alert("Sharing is not available. Address copied instead.");
-    } catch {
-      alert("Unable to share address");
-    }
+    } catch { alert("Unable to share address"); }
   }
 
+  const card = {
+    background: "rgba(13,21,52,.84)",
+    border: "1px solid rgba(104,76,210,.26)",
+    borderRadius: 24,
+    boxShadow: "0 18px 50px rgba(0,0,0,.18)",
+  };
+
   return (
-    <div>
-      <h2>Receive Crypto</h2>
+    <div style={{ maxWidth: 560, margin: "0 auto", paddingBottom: 30 }}>
+      <div style={{ marginBottom: 18 }}>
+        <div style={{ color: "#8d9abb", fontSize: 12 }}>Receive securely</div>
+        <h2 style={{ margin: "4px 0 0", fontSize: 28 }}>Receive Crypto</h2>
+        <p style={{ color: "#8d9abb", fontSize: 13, marginTop: 7 }}>Share your address or scan the QR code.</p>
+      </div>
 
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 16,
-          marginTop: 20,
-        }}
-      >
-        <p style={{ color: "#94a3b8" }}>Network</p>
-        <h3 style={{ marginTop: 5 }}>{networkName}</h3>
+      <div style={{ ...card, padding: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ color: "#8694b3", fontSize: 12 }}>Network</div>
+            <strong style={{ display: "block", marginTop: 4 }}>{networkName}</strong>
+          </div>
+          <div style={{ padding: "7px 10px", borderRadius: 99, background: "rgba(34,197,94,.12)", color: "#4ade80", fontSize: 11 }}>Ready to receive</div>
+        </div>
 
-        <p style={{ color: "#94a3b8", marginTop: 20 }}>
-          Wallet Address
-        </p>
+        <div style={{ marginTop: 18, padding: 14, borderRadius: 16, background: "#09132f", border: "1px solid #24345f" }}>
+          <div style={{ color: "#7f8cac", fontSize: 11 }}>Wallet address</div>
+          <div style={{ marginTop: 6, fontSize: 15, fontWeight: 700, wordBreak: "break-all" }}>{address || "No Wallet"}</div>
+          <div style={{ color: "#667594", fontSize: 11, marginTop: 6 }}>{shortAddress}</div>
+        </div>
 
-        <p
-          style={{
-            wordBreak: "break-all",
-            marginBottom: 0,
-          }}
-        >
-          {address || "No Wallet"}
-        </p>
-
-        <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
-          <button
-            onClick={copyAddress}
-            style={{
-              flex: 1,
-              padding: 12,
-              border: "none",
-              borderRadius: 12,
-              background: "#334155",
-              color: "white",
-              fontWeight: "bold",
-            }}
-          >
-            Copy Address
-          </button>
-
-          <button
-            onClick={shareAddress}
-            style={{
-              flex: 1,
-              padding: 12,
-              border: "none",
-              borderRadius: 12,
-              background: "#22c55e",
-              color: "white",
-              fontWeight: "bold",
-            }}
-          >
-            Share
-          </button>
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <button onClick={copyAddress} style={{ flex: 1, padding: 13, border: "1px solid #2d3d69", borderRadius: 14, background: "#121f40", color: "white", fontWeight: 700 }}>Copy Address</button>
+          <button onClick={shareAddress} style={{ flex: 1, padding: 13, border: "1px solid rgba(139,92,246,.45)", borderRadius: 14, background: "linear-gradient(135deg,#7c3aed,#2563eb)", color: "white", fontWeight: 800 }}>Share</button>
         </div>
       </div>
 
