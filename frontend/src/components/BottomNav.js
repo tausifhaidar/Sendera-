@@ -1,10 +1,9 @@
 function BottomNav({ activeTab, setActiveTab }) {
   const items = [
     { key: "home", icon: "⌂", label: "Home" },
-    { key: "send", icon: "↑", label: "Send" },
-    { key: "receive", icon: "↓", label: "Receive" },
     { key: "tokens", icon: "◈", label: "Tokens" },
     { key: "history", icon: "◷", label: "Activity" },
+    { key: "ai", icon: "✦", label: "AI" },
     { key: "settings", icon: "⚙", label: "Settings" },
   ];
 
