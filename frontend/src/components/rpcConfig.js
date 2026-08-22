@@ -1,7 +1,5 @@
 export const NETWORKS = {
-  // Ethereum testnets
   ethereumSepolia: { name: "Ethereum Sepolia", symbol: "ETH", chainId: "11155111", rpc: "https://ethereum-sepolia-rpc.publicnode.com", explorer: "https://sepolia.etherscan.io/tx/", testnet: true },
-  // Ethereum mainnet ecosystem
   ethereum: { name: "Ethereum", symbol: "ETH", chainId: "1", rpc: "https://ethereum-rpc.publicnode.com", explorer: "https://etherscan.io/tx/", mainnet: true },
   base: { name: "Base", symbol: "ETH", chainId: "8453", rpc: "https://mainnet.base.org", explorer: "https://basescan.org/tx/", mainnet: true },
   arbitrum: { name: "Arbitrum One", symbol: "ETH", chainId: "42161", rpc: "https://arb1.arbitrum.io/rpc", explorer: "https://arbiscan.io/tx/", mainnet: true },
@@ -25,8 +23,6 @@ export const NETWORKS = {
   monad: { name: "Monad", symbol: "MON", chainId: "143", rpc: "https://rpc.monad.xyz", explorer: "https://monadscan.com/tx/", mainnet: true },
   hyperevm: { name: "HyperEVM", symbol: "HYPE", chainId: "999", rpc: "https://rpc.hyperliquid.xyz/evm", explorer: "https://www.hyperscan.com/tx/", mainnet: true },
   xdc: { name: "XDC Network", symbol: "XDC", chainId: "50", rpc: "https://rpc.xinfin.network", explorer: "https://xdcscan.io/tx/", mainnet: true },
-
-  // Existing testnets
   baseSepolia: { name: "Base Sepolia", symbol: "ETH", chainId: "84532", rpc: "https://sepolia.base.org", explorer: "https://sepolia.basescan.org/tx/", testnet: true },
   polygonAmoy: { name: "Polygon Amoy", symbol: "POL", chainId: "80002", rpc: "https://rpc-amoy.polygon.technology", explorer: "https://amoy.polygonscan.com/tx/", testnet: true },
 };
@@ -34,3 +30,21 @@ export const NETWORKS = {
 export const NETWORK_LIST = Object.entries(NETWORKS).map(([key, value]) => ({ key, ...value }));
 export const MAINNETS = NETWORK_LIST.filter((network) => network.mainnet);
 export const TESTNETS = NETWORK_LIST.filter((network) => network.testnet);
+
+// Compatibility bridge for the existing history hook: old App code only knows the original testnet chain map.
+// When a newly added EVM mainnet is selected, rewrite an undefined chainid in the history URL from the persisted network.
+if (typeof window !== "undefined" && !window.__senderaNetworkFetchPatched) {
+  window.__senderaNetworkFetchPatched = true;
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    try {
+      const rawUrl = typeof input === "string" ? input : input?.url;
+      if (rawUrl && /\/api\/(transactions|token-transactions)/.test(rawUrl) && /chainid=undefined(?:&|$)/.test(rawUrl)) {
+        const saved = localStorage.getItem("sendera_selected_network");
+        const replacement = NETWORKS[saved]?.chainId;
+        if (replacement) input = rawUrl.replace("chainid=undefined", `chainid=${replacement}`);
+      }
+    } catch {}
+    return nativeFetch(input, init);
+  };
+}
