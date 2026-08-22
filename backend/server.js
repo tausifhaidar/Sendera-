@@ -71,6 +71,46 @@ app.get("/api/transactions", async (req, res) => {
   }
 });
 
+app.get("/api/token-holdings", async (req, res) => {
+  const { address, chainid = "11155111", page = "1", offset = "100" } = req.query;
+
+  if (!validateAddress(address)) return res.status(400).json({ error: "Invalid wallet address" });
+  if (!validateChain(chainid)) return res.status(400).json({ error: "Unsupported network" });
+
+  try {
+    const data = await explorerRequest({
+      chainid,
+      module: "account",
+      action: "addresstokenbalance",
+      address,
+      page,
+      offset,
+    });
+
+    if (data.status === "1" && Array.isArray(data.result)) {
+      const holdings = data.result.map((token) => ({
+        address: token.TokenAddress,
+        name: token.TokenName,
+        symbol: token.TokenSymbol,
+        decimals: Number(token.TokenDivisor || 18),
+        balance: token.TokenQuantity || "0",
+        priceUsd: Number(token.TokenPriceUSD || 0),
+        network: SUPPORTED_CHAINS[String(chainid)],
+      }));
+      return res.json({ network: SUPPORTED_CHAINS[String(chainid)], holdings });
+    }
+
+    if (Array.isArray(data.result) && data.result.length === 0) {
+      return res.json({ network: SUPPORTED_CHAINS[String(chainid)], holdings: [] });
+    }
+
+    return res.status(502).json({ error: data.result || "Unable to load token holdings" });
+  } catch (error) {
+    console.error("Token holdings error:", error.message);
+    return res.status(502).json({ error: error.message || "Unable to load token holdings" });
+  }
+});
+
 app.get("/api/token-transactions", async (req, res) => {
   const { address, contractaddress, chainid = "11155111" } = req.query;
 
