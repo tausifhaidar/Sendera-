@@ -1,7 +1,13 @@
 import { useState } from "react";
 
-function HomeTab({ wallet, balance, selectedNetwork, setActiveTab }) {
+function HomeTab({ wallet, balance, selectedNetwork, setSelectedNetwork, setActiveTab }) {
   const [copied, setCopied] = useState(false);
+
+  const networks = [
+    { key: "baseSepolia", name: "Base Sepolia" },
+    { key: "ethereumSepolia", name: "Ethereum Sepolia" },
+    { key: "polygonAmoy", name: "Polygon Amoy" },
+  ];
 
   const networkName =
     selectedNetwork === "baseSepolia"
@@ -114,22 +120,47 @@ function HomeTab({ wallet, balance, selectedNetwork, setActiveTab }) {
         </div>
       </header>
 
-      <button
-        onClick={() => go("settings")}
-        style={{
-          border: "1px solid rgba(130,150,255,.25)",
-          background: "rgba(20,31,69,.72)",
-          color: "#eef2ff",
-          borderRadius: 999,
-          padding: "9px 14px",
-          fontWeight: 700,
-          fontSize: 12,
-          cursor: "pointer",
-          margin: "0 0 12px 2px",
-        }}
-      >
-        ● {networkName}⌄
-      </button>
+      <div style={{ position: "relative", margin: "0 0 12px 2px" }}>
+        <select
+          value={selectedNetwork}
+          onChange={(e) => setSelectedNetwork?.(e.target.value)}
+          aria-label="Select network"
+          style={{
+            appearance: "none",
+            WebkitAppearance: "none",
+            border: "1px solid rgba(130,150,255,.30)",
+            background: "linear-gradient(135deg, rgba(24,39,86,.92), rgba(31,18,71,.90))",
+            color: "#eef2ff",
+            borderRadius: 999,
+            padding: "10px 36px 10px 14px",
+            fontWeight: 800,
+            fontSize: 12,
+            cursor: "pointer",
+            outline: "none",
+            boxShadow: "0 10px 30px rgba(35,40,120,.18)",
+          }}
+        >
+          {networks.map((network) => (
+            <option key={network.key} value={network.key} style={{ background: "#0b1227", color: "white" }}>
+              ● {network.name}
+            </option>
+          ))}
+        </select>
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: 118,
+            top: "50%",
+            transform: "translateY(-50%)",
+            pointerEvents: "none",
+            color: "#b9c6e6",
+            fontSize: 11,
+          }}
+        >
+          ▾
+        </span>
+      </div>
 
       <section
         style={{
@@ -142,7 +173,7 @@ function HomeTab({ wallet, balance, selectedNetwork, setActiveTab }) {
       >
         <div style={{ position: "absolute", right: -20, top: -20, width: 210, height: 210, borderRadius: "50%", background: "radial-gradient(circle, rgba(143,75,255,.42), transparent 68%)" }} />
         <div style={{ color: "#b5bfd7", fontSize: 13, fontWeight: 600 }}>Total Balance</div>
-        <div style={{ marginTop: 5, fontSize: 40, lineHeight: 1, fontWeight: 900, letterSpacing: -1.7 }}>
+        <div style={{ marginTop: 5, fontSize: 40, lineHeight: 1, fontWeight: 900, letterSpacing: -1.7, whiteSpace: "nowrap" }}>
           {Number(balance || 0).toFixed(4)} ETH
         </div>
         <div style={{ marginTop: 8, color: "#92a0bd", fontSize: 13 }}>{networkName}</div>
