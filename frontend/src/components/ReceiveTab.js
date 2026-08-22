@@ -1,6 +1,12 @@
 import QRCard from "./QRCard";
 
-function ReceiveTab({ wallet, selectedNetwork }) {
+function ReceiveTab({ wallet, selectedNetwork, setSelectedNetwork }) {
+  const networks = [
+    { key: "baseSepolia", name: "Base Sepolia" },
+    { key: "ethereumSepolia", name: "Ethereum Sepolia" },
+    { key: "polygonAmoy", name: "Polygon Amoy" },
+  ];
+
   const networkName =
     selectedNetwork === "baseSepolia"
       ? "Base Sepolia"
@@ -46,13 +52,44 @@ function ReceiveTab({ wallet, selectedNetwork }) {
       <div style={{ marginBottom: 18 }}>
         <div style={{ color: "#8d9abb", fontSize: 12 }}>Receive securely</div>
         <h2 style={{ margin: "4px 0 0", fontSize: 28 }}>Receive Crypto</h2>
-        <p style={{ color: "#8d9abb", fontSize: 13, marginTop: 7 }}>Share your address or scan the QR code.</p>
+        <p style={{ color: "#8d9abb", fontSize: 13, marginTop: 7 }}>Choose the network first, then share your address.</p>
       </div>
 
-      <div style={{ ...card, padding: 20 }}>
+      <div style={{ ...card, padding: 18 }}>
+        <div style={{ color: "#8694b3", fontSize: 11, fontWeight: 800, letterSpacing: 0.4 }}>RECEIVE ON NETWORK</div>
+        <div style={{ display: "grid", gap: 9, marginTop: 12 }}>
+          {networks.map((network) => {
+            const active = selectedNetwork === network.key;
+            return (
+              <button
+                key={network.key}
+                onClick={() => setSelectedNetwork(network.key)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "13px 14px",
+                  borderRadius: 15,
+                  border: active ? "1px solid rgba(139,92,246,.75)" : "1px solid #26375f",
+                  background: active ? "linear-gradient(135deg, rgba(124,58,237,.30), rgba(37,99,235,.24))" : "#0b1634",
+                  color: "white",
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{ fontWeight: 750, fontSize: 13 }}>{network.name}</span>
+                <span style={{ color: active ? "#a78bfa" : "#667594", fontSize: 12 }}>{active ? "✓ Selected" : "Select"}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ ...card, padding: 20, marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ color: "#8694b3", fontSize: 12 }}>Network</div>
+            <div style={{ color: "#8694b3", fontSize: 12 }}>Selected Network</div>
             <strong style={{ display: "block", marginTop: 4 }}>{networkName}</strong>
           </div>
           <div style={{ padding: "7px 10px", borderRadius: 99, background: "rgba(34,197,94,.12)", color: "#4ade80", fontSize: 11 }}>Ready to receive</div>
