@@ -6,8 +6,30 @@ const PORT = process.env.PORT || 5000;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 const SUPPORTED_CHAINS = {
-  "11155111": "Ethereum Sepolia",
+  "1": "Ethereum",
+  "10": "OP Mainnet",
+  "50": "XDC Network",
+  "56": "BNB Smart Chain",
+  "100": "Gnosis",
+  "130": "Unichain",
+  "137": "Polygon",
+  "143": "Monad",
+  "146": "Sonic",
+  "204": "opBNB",
+  "324": "zkSync Era",
+  "999": "HyperEVM",
+  "1284": "Moonbeam",
+  "1285": "Moonriver",
+  "5000": "Mantle",
+  "8453": "Base",
+  "59144": "Linea",
+  "42220": "Celo",
+  "43114": "Avalanche C-Chain",
+  "534352": "Scroll",
+  "80094": "Berachain",
+  "81457": "Blast",
   "84532": "Base Sepolia",
+  "11155111": "Ethereum Sepolia",
   "80002": "Polygon Amoy",
 };
 
@@ -38,7 +60,7 @@ function validateChain(chainid) {
 }
 
 app.get("/api/transactions", async (req, res) => {
-  const { address, chainid = "11155111" } = req.query;
+  const { address, chainid = "1" } = req.query;
 
   if (!validateAddress(address)) return res.status(400).json({ error: "Invalid wallet address" });
   if (!validateChain(chainid)) return res.status(400).json({ error: "Unsupported network" });
@@ -72,7 +94,7 @@ app.get("/api/transactions", async (req, res) => {
 });
 
 app.get("/api/token-holdings", async (req, res) => {
-  const { address, chainid = "11155111", page = "1", offset = "100" } = req.query;
+  const { address, chainid = "1", page = "1", offset = "100" } = req.query;
 
   if (!validateAddress(address)) return res.status(400).json({ error: "Invalid wallet address" });
   if (!validateChain(chainid)) return res.status(400).json({ error: "Unsupported network" });
@@ -112,7 +134,7 @@ app.get("/api/token-holdings", async (req, res) => {
 });
 
 app.get("/api/token-transactions", async (req, res) => {
-  const { address, contractaddress, chainid = "11155111" } = req.query;
+  const { address, contractaddress, chainid = "1" } = req.query;
 
   if (!validateAddress(address) || !validateAddress(contractaddress)) {
     return res.status(400).json({ error: "Invalid wallet or token contract address" });
