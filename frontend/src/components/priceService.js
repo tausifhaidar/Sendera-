@@ -85,7 +85,9 @@ export async function fetchTokenUsdPrice(networkKey, contractAddress) {
 
 export function formatUsd(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "—";
+  if (!Number.isFinite(number)) return "—";
+  if (number === 0) return "$0.00";
+  if (number < 0) return "—";
   if (number >= 1000) return `$${number.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
   if (number >= 1) return `$${number.toFixed(2)}`;
   if (number >= 0.01) return `$${number.toFixed(4)}`;
