@@ -106,6 +106,7 @@ function TokenTab({ wallet, selectedNetwork }) {
   const nativeUsd = Number(nativeBalance || 0) * Number(nativePrice || 0);
   const tokenUsd = enriched.reduce((sum, token) => sum + Number(displayBalance(token)) * Number(token.livePriceUsd || 0), 0);
   const totalUsd = nativeUsd + tokenUsd;
+  const totalValueReady = nativePrice !== null || enriched.some((token) => token.livePriceUsd > 0);
   const card = { background: "rgba(13,21,52,.84)", border: "1px solid rgba(91,74,170,.25)", padding: 18, borderRadius: 22 };
 
   return (
@@ -113,8 +114,8 @@ function TokenTab({ wallet, selectedNetwork }) {
       <div style={{ marginBottom: 18 }}><div style={{ color: "#8d9abb", fontSize: 12 }}>Assets & live prices</div><h2 style={{ margin: "4px 0 0", fontSize: 28 }}>Portfolio</h2><p style={{ color: "#8d9abb", margin: "6px 0 0", fontSize: 12 }}>{network.name || selectedNetwork}</p></div>
       <section style={{ ...card, background: "linear-gradient(145deg,rgba(28,26,75,.94),rgba(8,17,45,.98))" }}>
         <div style={{ color: "#7e8ca9", fontSize: 11, fontWeight: 800 }}>TOTAL PORTFOLIO VALUE</div>
-        <div style={{ marginTop: 6, fontSize: 30, fontWeight: 900 }}>{totalUsd > 0 ? formatUsd(totalUsd) : "Price unavailable"}</div>
-        <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap", fontSize: 11, color: "#9aa8c4" }}><span>{nativeBalance} {network.symbol || "NATIVE"} · {nativePrice ? formatUsd(nativePrice) : "—"}</span><span>{priceLoading ? "Updating prices…" : "Live prices"}</span></div>
+        <div style={{ marginTop: 6, fontSize: 30, fontWeight: 900 }}>{totalValueReady ? formatUsd(totalUsd) : "Price unavailable"}</div>
+        <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap", fontSize: 11, color: "#9aa8c4" }}><span>{nativeBalance} {network.symbol || "NATIVE"} · {nativePrice !== null ? formatUsd(nativePrice) : "—"}</span><span>{priceLoading ? "Updating prices…" : "Live prices"}</span></div>
         <button onClick={() => { loadHoldings(); loadNativeBalance(); refreshPrices(merged); }} style={{ width: "100%", padding: 12, marginTop: 13, border: "1px solid rgba(139,92,246,.45)", borderRadius: 13, background: "linear-gradient(135deg,#7c3aed,#2563eb)", color: "white", fontWeight: 800 }}>Refresh Portfolio</button>
       </section>
       {enriched.length === 0 ? <div style={{ ...card, marginTop: 16, color: "#8b98b5", textAlign: "center" }}><div style={{ color: "#dce4f2", fontWeight: 700 }}>No token balances found</div><div style={{ fontSize: 12, marginTop: 5 }}>Token holdings on this EVM network are discovered automatically.</div></div> : enriched.map((token) => {
