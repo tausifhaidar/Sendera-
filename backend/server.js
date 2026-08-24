@@ -33,6 +33,36 @@ const SUPPORTED_CHAINS = {
   "80002": "Polygon Amoy",
 };
 
+// CoinGecko IDs for the native assets used by Sendera's configured EVM networks.
+// Testnets share the underlying mainnet asset price where applicable.
+const NATIVE_PRICE_IDS = {
+  "1": "ethereum",
+  "10": "ethereum",
+  "50": "xdce-crowd-sale",
+  "56": "binancecoin",
+  "100": "xdai",
+  "130": "ethereum",
+  "137": "polygon",
+  "143": "monad",
+  "146": "sonic",
+  "204": "binancecoin",
+  "324": "ethereum",
+  "999": "hyperliquid",
+  "1284": "moonbeam",
+  "1285": "moonriver",
+  "5000": "mantle",
+  "8453": "ethereum",
+  "59144": "ethereum",
+  "42220": "celo",
+  "43114": "avalanche-2",
+  "534352": "ethereum",
+  "80094": "berachain-bera",
+  "81457": "ethereum",
+  "84532": "ethereum",
+  "11155111": "ethereum",
+  "80002": "polygon",
+};
+
 app.use(cors());
 app.use(express.json());
 
@@ -58,6 +88,34 @@ function validateAddress(address) {
 function validateChain(chainid) {
   return Boolean(SUPPORTED_CHAINS[String(chainid)]);
 }
+
+app.get("/api/prices", async (req, res) => {
+  const chainid = String(req.query.chainid || "1");
+  const priceId = NATIVE_PRICE_IDS[chainid];
+  if (!priceId) return res.status(400).json({ error: "Unsupported network price" });
+
+  try {
+    const url = new URL("https://api.coingecko.com/api/v3/simple/price");
+    url.searchParams.set("ids", priceId);
+    url.searchParams.set("vs_currencies", "usd");
+    const response = await fetch(url, { headers: { accept: "application/json" } });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error || "Price provider unavailable");
+    const priceUsd = Number(data?.[priceId]?.usd || 0);
+    if (!priceUsd) throw new Error("Live price unavailable");
+    return res.json({
+      chainid,
+      network: SUPPORTED_CHAINS[chainid],
+      priceId,
+      priceUsd,
+      source: "coingecko",
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Native price error:", error.message);
+    return res.status(502).json({ error: error.message || "Unable to load native asset price" });
+  }
+});
 
 app.get("/api/transactions", async (req, res) => {
   const { address, chainid = "1" } = req.query;
