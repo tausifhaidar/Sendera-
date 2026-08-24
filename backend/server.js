@@ -1,9 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const { generateJwt } = require("@coinbase/cdp-sdk/auth");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const COINBASE_KEY_NAME = process.env.COINBASE_KEY_NAME || process.env.KEY_NAME;
+const COINBASE_KEY_SECRET = process.env.COINBASE_KEY_SECRET || process.env.KEY_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://sendera-gamma.vercel.app";
 
 const SUPPORTED_CHAINS = {
   "1": "Ethereum",
@@ -33,8 +37,6 @@ const SUPPORTED_CHAINS = {
   "80002": "Polygon Amoy",
 };
 
-// CoinGecko IDs for the native assets used by Sendera's configured EVM networks.
-// Testnets share the underlying mainnet asset price where applicable.
 const NATIVE_PRICE_IDS = {
   "1": "ethereum",
   "10": "ethereum",
@@ -61,6 +63,22 @@ const NATIVE_PRICE_IDS = {
   "84532": "ethereum",
   "11155111": "ethereum",
   "80002": "polygon",
+};
+
+const COINBASE_BUY_NETWORKS = {
+  ethereum: "ethereum",
+  base: "base",
+  arbitrum: "arbitrum",
+  optimism: "optimism",
+  polygon: "polygon",
+};
+
+const COINBASE_BUY_ASSETS = {
+  ethereum: ["ETH", "USDC"],
+  base: ["ETH", "USDC"],
+  arbitrum: ["ETH", "USDC"],
+  optimism: ["ETH", "USDC"],
+  polygon: ["USDC"],
 };
 
 app.use(cors());
@@ -114,6 +132,75 @@ app.get("/api/prices", async (req, res) => {
   } catch (error) {
     console.error("Native price error:", error.message);
     return res.status(502).json({ error: error.message || "Unable to load native asset price" });
+  }
+});
+
+app.post("/api/buy/session", async (req, res) => {
+  const { address, network, asset, presetFiatAmount } = req.body || {};
+  const blockchain = COINBASE_BUY_NETWORKS[String(network || "")];
+
+  if (!COINBASE_KEY_NAME || !COINBASE_KEY_SECRET) {
+    return res.status(503).json({ error: "Coinbase Onramp is not configured on the backend yet" });
+  }
+  if (!validateAddress(address)) return res.status(400).json({ error: "Invalid wallet address" });
+  if (!blockchain) return res.status(400).json({ error: "Buy is not available on this network" });
+  if (!COINBASE_BUY_ASSETS[blockchain].includes(String(asset || ""))) {
+    return res.status(400).json({ error: "Selected asset is not available on this network" });
+  }
+
+  try {
+    const jwt = await generateJwt({
+      apiKeyId: COINBASE_KEY_NAME,
+      apiKeySecret: COINBASE_KEY_SECRET,
+      requestMethod: "POST",
+      requestHost: "api.developer.coinbase.com",
+      requestPath: "/onramp/v1/token",
+      expiresIn: 120,
+    });
+
+    const clientIp = String(req.socket?.remoteAddress || "").replace(/^::ffff:/, "") || "127.0.0.1";
+    const body = {
+      addresses: [{ address, blockchains: [blockchain] }],
+      assets: [asset],
+      clientIp,
+    };
+
+    const response = await fetch("https://api.developer.coinbase.com/onramp/v1/token", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok || !data?.token) {
+      console.error("Coinbase Onramp session error:", data);
+      return res.status(502).json({ error: data?.error || data?.message || "Unable to create Coinbase Onramp session" });
+    }
+
+    const params = new URLSearchParams({
+      sessionToken: data.token,
+      partnerUserRef: `sendera-${address.slice(2, 12)}`,
+      redirectUrl: FRONTEND_URL,
+      defaultNetwork: blockchain,
+      defaultAsset: asset,
+      defaultExperience: "buy",
+    });
+    if (presetFiatAmount && Number(presetFiatAmount) > 0) {
+      params.set("presetFiatAmount", String(Math.min(Number(presetFiatAmount), 2500)));
+    }
+
+    return res.json({
+      provider: "coinbase",
+      network: blockchain,
+      asset,
+      onrampUrl: `https://pay.coinbase.com/buy/select-asset?${params.toString()}`,
+      expiresInSeconds: 300,
+    });
+  } catch (error) {
+    console.error("Coinbase Onramp error:", error.message);
+    return res.status(502).json({ error: error.message || "Unable to start buy flow" });
   }
 });
 
