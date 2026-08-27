@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import { NETWORKS, MAINNETS, TESTNETS } from "./rpcConfig";
 import BuyModal from "./BuyModal";
+import { fetchNativeUsdPrice } from "./priceService";
 
 const SWAP_CONFIG = {
   ethereumSepolia: { chainId: 11155111, quoter: "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3", router: "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E" },
@@ -20,8 +21,6 @@ const QUOTER_ABI = ["function quoteExactInputSingle((address tokenIn,address tok
 const ROUTER_ABI = ["function exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96)) payable returns (uint256 amountOut)"];
 
 function shorten(value) { return value ? `${value.slice(0, 6)}...${value.slice(-4)}` : "—"; }
-
-// [native-price-patched]
 
 function HomeTab({ wallet, balance, selectedNetwork, setSelectedNetwork, setActiveTab }) {
   const [copied, setCopied] = useState(false);
@@ -57,15 +56,22 @@ function HomeTab({ wallet, balance, selectedNetwork, setSelectedNetwork, setActi
     let cancelled = false;
     async function loadPrice() {
       try {
-        const url = backendUrl ? `${backendUrl.replace(/\/$/, "")}/api/prices?chainid=${network.chainId}` : "";
-        if (!url) throw new Error("Price service unavailable");
-        const response = await fetch(url);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || "Price service unavailable");
-        if (!cancelled) setNativeUsd(Number(data?.priceUsd || 0));
+        let price = null;
+        if (backendUrl) {
+          const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/prices?chainid=${network.chainId}`);
+          const data = await response.json();
+          if (response.ok) price = Number(data?.priceUsd || 0) || null;
+        }
+        if (!price) price = await fetchNativeUsdPrice(selectedNetwork);
+        if (!cancelled) setNativeUsd(price);
       } catch (error) {
         console.log("Native price error:", error.message);
-        if (!cancelled) setNativeUsd(null);
+        try {
+          const fallback = await fetchNativeUsdPrice(selectedNetwork);
+          if (!cancelled) setNativeUsd(fallback);
+        } catch {
+          if (!cancelled) setNativeUsd(null);
+        }
       }
     }
     loadPrice();
@@ -139,7 +145,8 @@ function HomeTab({ wallet, balance, selectedNetwork, setSelectedNetwork, setActi
 
   const portfolioUsd = useMemo(() => {
     const value = Number(balance || 0) * Number(nativeUsd || 0);
-    return value > 0 ? `$${value.toFixed(2)}` : "Price unavailable";
+    if (value > 0) return `$${value.toFixed(2)}`;
+    return Number(balance || 0) === 0 ? "$0.00" : "Price unavailable";
   }, [balance, nativeUsd]);
 
   const action = (title, subtitle, icon, accent, onClick) => <button onClick={onClick} style={{ ...card, flex: 1, minWidth: 0, padding: "16px 7px 14px", color: "white", cursor: "pointer", textAlign: "center" }}><div style={{ width: 42, height: 42, borderRadius: "50%", margin: "0 auto 9px", display: "grid", placeItems: "center", background: accent, fontSize: 21, fontWeight: 900 }}>{icon}</div><div style={{ fontSize: 14, fontWeight: 800 }}>{title}</div><div style={{ marginTop: 2, fontSize: 10, color: "#a9b4d0" }}>{subtitle}</div></button>;
@@ -159,11 +166,11 @@ function HomeTab({ wallet, balance, selectedNetwork, setSelectedNetwork, setActi
         </select>
       </div>
 
-      <section style={{ ...card, padding: 22, position: "relative", overflow: "hidden", background: "linear-gradient(135deg,rgba(22,27,74,.92),rgba(20,10,59,.74) 55%,rgba(7,36,73,.80))" }}><div style={{ position: "absolute", right: -20, top: -20, width: 210, height: 210, borderRadius: "50%", background: "radial-gradient(circle,rgba(143,75,255,.42),transparent 68%)" }} /><div style={{ color: "#b5bfd7", fontSize: 13, fontWeight: 600 }}>Total Balance</div><div style={{ marginTop: 5, fontSize: 40, lineHeight: 1, fontWeight: 900, letterSpacing: -1.7, whiteSpace: "nowrap" }}>{Number(balance || 0).toFixed(4)} {nativeSymbol}</div><div style={{ marginTop: 8, color: "#92a0bd", fontSize: 13 }}>{networkName}</div><div style={{ marginTop: 8, color: "#d4dcf0", fontSize: 15, fontWeight: 800 }}>{portfolioUsd}</div><div style={{ marginTop: 15, height: 62 }}><svg width="100%" height="62" viewBox="0 0 420 62" preserveAspectRatio="none"><defs><linearGradient id="line" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6d35ff"/><stop offset="100%" stopColor="#35a7ff"/></linearGradient></defs><path d="M0 48 C45 36 64 58 103 38 S164 45 205 24 S258 38 297 14 S345 21 420 1" fill="none" stroke="url(#line)" strokeWidth="4" strokeLinecap="round" /></svg></div><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}><div style={{ border: "1px solid rgba(170,160,255,.18)", background: "rgba(255,255,255,.06)", borderRadius: 14, padding: "9px 11px", color: "#dce2f1", fontSize: 12 }}>{shortAddress}</div><button onClick={copyAddress} style={{ border: 0, background: "transparent", color: "#8ec6ff", fontWeight: 800, cursor: "pointer" }}>{copied ? "Copied" : "Copy"}</button></div></section>
+      <section style={{ ...card, padding: 22, position: "relative", overflow: "hidden", background: "linear-gradient(135deg,rgba(22,27,74,.92),rgba(20,10,59,.74) 55%,rgba(7,36,73,.80))" }}><div style={{ position: "absolute", right: -20, top: -20, width: 210, height: 210, borderRadius: "50%", background: "radial-gradient(circle,rgba(143,75,255,.42),transparent 68%)" }} /><div style={{ color: "#b5bfd7", fontSize: 13, fontWeight: 600 }}>Total Balance</div><div style={{ marginTop: 5, fontSize: 40, lineHeight: 1, fontWeight: 900, letterSpacing: -1.7, whiteSpace: "nowrap" }}>{Number(balance || 0).toFixed(4)} {nativeSymbol}</div><div style={{ marginTop: 8, color: "#92a0bd", fontSize: 13 }}>{networkName}</div><div style={{ marginTop: 8, color: "#d4dcf0", fontSize: 15, fontWeight: 800 }}>{portfolioUsd}</div><div style={{ marginTop: 6, color: nativeUsd ? "#9aa8c4" : "#e2a6a6", fontSize: 11 }}>{nativeUsd ? `Live price · $${nativeUsd.toLocaleString()}/${nativeSymbol}` : "Live price unavailable"}</div><div style={{ marginTop: 15, height: 62 }}><svg width="100%" height="62" viewBox="0 0 420 62" preserveAspectRatio="none"><defs><linearGradient id="line" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6d35ff"/><stop offset="100%" stopColor="#35a7ff"/></linearGradient></defs><path d="M0 48 C45 36 64 58 103 38 S164 45 205 24 S258 38 297 14 S345 21 420 1" fill="none" stroke="url(#line)" strokeWidth="4" strokeLinecap="round" /></svg></div><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}><div style={{ border: "1px solid rgba(170,160,255,.18)", background: "rgba(255,255,255,.06)", borderRadius: 14, padding: "9px 11px", color: "#dce2f1", fontSize: 12 }}>{shortAddress}</div><button onClick={copyAddress} style={{ border: 0, background: "transparent", color: "#8ec6ff", fontWeight: 800, cursor: "pointer" }}>{copied ? "Copied" : "Copy"}</button></div></section>
 
       <div style={{ display: "flex", gap: 10, marginTop: 12 }}>{action("Send", "Crypto", "↑", "linear-gradient(145deg,#7b31ff,#5b20ff)", () => setActiveTab?.("send"))}{action("Receive", "Crypto", "↓", "linear-gradient(145deg,#22e77c,#08b862)", () => setActiveTab?.("receive"))}{action("Swap", "Tokens", "⇄", "linear-gradient(145deg,#19b9ff,#0677d8)", () => setShowSwap(true))}{action("Buy", "Crypto", "+", "linear-gradient(145deg,#ff9c2d,#ff6f00)", () => setShowBuy(true))}</div>
 
-      <section style={{ ...card, marginTop: 14, overflow: "hidden" }}><div style={{ display: "flex", justifyContent: "space-between", padding: "17px 17px 13px", borderBottom: "1px solid rgba(120,140,190,.13)" }}><div style={{ fontSize: 19, fontWeight: 850 }}>Portfolio</div><div style={{ color: "#7d8ca9", fontSize: 11 }}>{nativeUsd ? "Live price" : "Price feed"}</div></div><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 17px" }}><div style={{ display: "flex", alignItems: "center", gap: 12 }}><div style={{ width: 44, height: 44, borderRadius: "50%", display: "grid", placeItems: "center", background: "linear-gradient(145deg,#4d73ff,#2637b7)", fontSize: 24 }}>Ξ</div><div><div style={{ fontWeight: 800, fontSize: 15 }}>{networkName}</div><div style={{ color: "#8f9bb3", marginTop: 3, fontSize: 12 }}>{nativeSymbol} • {Number(balance || 0).toFixed(4)}</div></div></div><div style={{ textAlign: "right" }}><div style={{ fontWeight: 800, fontSize: 14 }}>{portfolioUsd}</div><div style={{ color: "#8994ab", fontSize: 11, marginTop: 3 }}>{nativeUsd ? `$${nativeUsd.toLocaleString()}/${nativeSymbol}` : "Price unavailable"}</div></div></div><button onClick={() => setActiveTab?.("tokens")} style={{ width: "100%", border: 0, borderTop: "1px solid rgba(120,140,190,.13)", background: "rgba(255,255,255,.02)", color: "#7fc4ff", padding: 14, textAlign: "left", fontWeight: 800, cursor: "pointer" }}>Manage tokens →</button></section>
+      <section style={{ ...card, marginTop: 14, overflow: "hidden" }}><div style={{ display: "flex", justifyContent: "space-between", padding: "17px 17px 13px", borderBottom: "1px solid rgba(120,140,190,.13)" }}><div style={{ fontSize: 19, fontWeight: 850 }}>Portfolio</div><div style={{ color: "#7d8ca9", fontSize: 11 }}>{nativeUsd ? "Live price" : "Price feed"}</div></div><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 17px" }}><div style={{ display: "flex", alignItems: "center", gap: 12 }}><div style={{ width: 44, height: 44, borderRadius: "50%", display: "grid", placeItems: "center", background: "linear-gradient(145deg,#4d73ff,#2637b7)", fontSize: 24 }}>Ξ</div><div><div style={{ fontWeight: 800, fontSize: 15 }}>{networkName}</div><div style={{ color: "#8f9bb3", marginTop: 3, fontSize: 12 }}>{nativeSymbol} • {Number(balance || 0).toFixed(4)}</div></div></div><div style={{ textAlign: "right" }}><div style={{ fontWeight: 800, fontSize: 14 }}>{portfolioUsd}</div><div style={{ color: "#8994ab", fontSize: 11, marginTop: 3 }}>{nativeUsd ? `$${nativeUsd.toLocaleString()}/${nativeSymbol}` : "Live price unavailable"}</div></div></div><button onClick={() => setActiveTab?.("tokens")} style={{ width: "100%", border: 0, borderTop: "1px solid rgba(120,140,190,.13)", background: "rgba(255,255,255,.02)", color: "#7fc4ff", padding: 14, textAlign: "left", fontWeight: 800, cursor: "pointer" }}>Manage tokens →</button></section>
 
       <section style={{ ...card, marginTop: 14, padding: 16 }}><div style={{ fontSize: 18, fontWeight: 850 }}>Security</div><div style={{ marginTop: 6, color: "#8c99b2", fontSize: 12 }}>Wallet encrypted locally. Auto-lock is enabled.</div><div style={{ display: "flex", gap: 9, marginTop: 12 }}><button onClick={() => setActiveTab?.("settings")} style={{ flex: 1, padding: 12, borderRadius: 13, border: "1px solid #293b68", background: "#101c39", color: "white", fontWeight: 800 }}>Security Settings</button><button onClick={() => setActiveTab?.("history")} style={{ flex: 1, padding: 12, borderRadius: 13, border: "1px solid rgba(139,92,246,.35)", background: "linear-gradient(135deg,#31206f,#203e78)", color: "white", fontWeight: 800 }}>Activity</button></div></section>
 
